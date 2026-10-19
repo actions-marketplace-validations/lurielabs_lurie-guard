@@ -74,6 +74,31 @@ describe('the built CLI', () => {
     rmSync(join(repo, '.lurie-guard.yml'));
   });
 
+  it('finds migrations nested under service folders (ADR 0012): plain SQL and a Rails app', () => {
+    mkdirSync(join(repo, 'services', 'billing', 'migrations'), { recursive: true });
+    writeFileSync(join(repo, 'services', 'billing', 'migrations', '001_index.sql'), 'CREATE INDEX invoices_due_idx ON invoices (due_at);\n');
+    mkdirSync(join(repo, 'apps', 'shop', 'db', 'migrate'), { recursive: true });
+    writeFileSync(
+      join(repo, 'apps', 'shop', 'db', 'migrate', '20261019120000_add_sku.rb'),
+      'class AddSku < ActiveRecord::Migration[7.1]\n  def change\n    add_column :orders, :sku, :string, null: false\n  end\nend\n',
+    );
+    const r = run(['--root', '.', '--format', 'json'], repo);
+    const out = JSON.parse(r.stdout) as { findings: { ruleId: string; path: string }[]; files: { path: string; framework: string }[] };
+    expect(out.files.map((f) => [f.path, f.framework])).toEqual([
+      ['apps/shop/db/migrate/20261019120000_add_sku.rb', 'rails'],
+      ['services/billing/migrations/001_index.sql', 'sql'],
+      ['src/main/resources/db/migration/V3__index_orders_client.sql', 'flyway'],
+    ]);
+    expect(out.findings.map((f) => [f.ruleId, f.path])).toEqual([
+      ['PG004', 'apps/shop/db/migrate/20261019120000_add_sku.rb'],
+      ['PG006', 'apps/shop/db/migrate/20261019120000_add_sku.rb'],
+      ['PG001', 'services/billing/migrations/001_index.sql'],
+      ['PG003', 'src/main/resources/db/migration/V3__index_orders_client.sql'],
+    ]);
+    rmSync(join(repo, 'services'), { recursive: true, force: true });
+    rmSync(join(repo, 'apps'), { recursive: true, force: true });
+  });
+
   it('--fail-on error exits 1 on an error finding; an invalid config exits 2 naming the key', () => {
     expect(run(['--root', '.', '--fail-on', 'error'], repo).status).toBe(1);
     expect(run(['--root', '.', '--fail-on', 'none'], repo).status).toBe(0);

@@ -64,7 +64,7 @@ jobs:
 
 | Framework | Arquivos | Envolvido em transação | Opt-out que o detector reconhece | SQL analisado |
 |---|---|---|---|---|
-| SQL puro | `migrations/**/*.sql`, `db/migrations/**/*.sql`, `sql/migrations/**/*.sql` | Não (ou `transaction: always`) | `BEGIN`/`COMMIT` explicitam a região envolvida | Todo |
+| SQL puro | `**/migrations/**/*.sql`, `**/db/migrations/**/*.sql`, `**/sql/migrations/**/*.sql` (em qualquer profundidade, então `services/<nome>/migrations/` funciona) | Não (ou `transaction: always`) | `BEGIN`/`COMMIT` explicitam a região envolvida | Todo |
 | Flyway | `**/db/migration/V*__*.sql`, `R*__*.sql` | Sim | `<arquivo>.sql.conf` com `executeInTransaction=false` | Todo |
 | Liquibase | `**/changelog/**/*.sql` com o cabeçalho `--liquibase formatted sql` | Sim | `--changeset ... runInTransaction:false` | Todo |
 | Rails | `db/migrate/*.rb` | Sim | `disable_ddl_transaction!` | Strings e heredocs de `execute`; os helpers acima |

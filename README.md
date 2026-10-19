@@ -64,7 +64,7 @@ jobs:
 
 | Framework | Files | Wrapped in a transaction | Opt-out the detector recognizes | SQL analyzed |
 |---|---|---|---|---|
-| Plain SQL | `migrations/**/*.sql`, `db/migrations/**/*.sql`, `sql/migrations/**/*.sql` | No (or `transaction: always`) | `BEGIN`/`COMMIT` make the wrapped region explicit | All |
+| Plain SQL | `**/migrations/**/*.sql`, `**/db/migrations/**/*.sql`, `**/sql/migrations/**/*.sql` (any depth, so `services/<name>/migrations/` works) | No (or `transaction: always`) | `BEGIN`/`COMMIT` make the wrapped region explicit | All |
 | Flyway | `**/db/migration/V*__*.sql`, `R*__*.sql` | Yes | `<file>.sql.conf` with `executeInTransaction=false` | All |
 | Liquibase | `**/changelog/**/*.sql` with the `--liquibase formatted sql` header | Yes | `--changeset ... runInTransaction:false` | All |
 | Rails | `db/migrate/*.rb` | Yes | `disable_ddl_transaction!` | `execute` strings and heredocs; the helpers above |

@@ -12198,7 +12198,8 @@ var FRAMEWORKS = [
   },
   {
     name: "sql",
-    globs: ["migrations/**/*.sql", "db/migrations/**/*.sql", "sql/migrations/**/*.sql"],
+    // Any depth (ADR 0012): monorepos keep migrations under services/<name>/migrations/.
+    globs: ["**/migrations/**/*.sql", "**/db/migrations/**/*.sql", "**/sql/migrations/**/*.sql"],
     wrapped: false,
     wrapReason: "plain SQL folder: treated as not wrapped unless the config says transaction: always or the file has BEGIN/COMMIT"
   }

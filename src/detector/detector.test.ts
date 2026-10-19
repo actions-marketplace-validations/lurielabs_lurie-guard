@@ -27,6 +27,14 @@ describe('framework classification', () => {
     ['db/000002_x.down.sql', '', 'golang-migrate', false],
     ['deploy/orders.sql', '', 'sqitch', true],
     ['src/queries/report.sql', '', undefined, undefined],
+    ['services/billing/migrations/001_init.sql', '', 'sql', false],
+    ['services/billing/db/migrations/001_init.sql', '', 'sql', false],
+    ['apps/shop/db/migrate/20261019120000_x.rb', '', 'rails', true],
+    ['packages/api/prisma/migrations/20261019_x/migration.sql', '', 'prisma', true],
+    ['services/a/src/main/resources/db/migration/V1__x.sql', '', 'flyway', true],
+    ['services/a/app/migrations/0001_initial.py', '', 'django', true],
+    ['services/a/alembic/versions/0001_x.py', '', 'alembic', true],
+    ['services/a/target/classes/migrations/001_init.sql', '', undefined, undefined],
     ['README.md', '', undefined, undefined],
   ])('%s -> %s', (path, content, framework, wrapped) => {
     const def = classify(path, content, config());
@@ -57,6 +65,7 @@ describe('framework classification', () => {
     c.paths = ['services/*/schema/**/*.sql'];
     expect(classify('services/a/schema/001.sql', '', c)?.name).toBe('sql');
     expect(classify('migrations/001.sql', '', c)).toBeUndefined();
+    expect(classify('services/b/migrations/001.sql', '', c)).toBeUndefined();
     c.exclude = ['services/legacy/**'];
     expect(classify('services/legacy/schema/001.sql', '', c)).toBeUndefined();
     c.framework = 'flyway';

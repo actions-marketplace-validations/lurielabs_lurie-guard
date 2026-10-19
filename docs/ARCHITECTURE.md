@@ -166,3 +166,4 @@ A GitHub App gives: installation on an organization without a workflow file, com
 | [0009](adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |
 | [0010](adr/0010-bundle-format-http-client-vendored-skills.md) | Amends 0009: ESM bundle, a fetch-based GitHub client (no Octokit), vendored skill text |
 | [0011](adr/0011-sarif-upload-opt-in.md) | Amends 0004: the SARIF upload is opt-in; GitHub comments every uploaded finding on the PR itself |
+| [0012](adr/0012-monorepo-layouts.md) | Migration globs match at any depth (monorepos); default excludes still win |

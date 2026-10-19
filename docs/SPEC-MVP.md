@@ -26,7 +26,7 @@ A file is a migration when it matches a path glob from the config or, with no co
 
 | Framework | Built-in glob | Runs the file in a transaction by default | Opt-out the detector recognizes |
 |---|---|---|---|
-| Plain SQL folder | `migrations/**/*.sql`, `db/migrations/**/*.sql`, `sql/migrations/**/*.sql` | Unknown; treated as **not wrapped** unless the config says `transaction: always` | `BEGIN`/`COMMIT` in the file make the wrapped region explicit |
+| Plain SQL folder | `**/migrations/**/*.sql`, `**/db/migrations/**/*.sql`, `**/sql/migrations/**/*.sql` (any depth: monorepos, [ADR 0012](adr/0012-monorepo-layouts.md)) | Unknown; treated as **not wrapped** unless the config says `transaction: always` | `BEGIN`/`COMMIT` in the file make the wrapped region explicit |
 | Flyway | `**/db/migration/V*__*.sql`, `**/db/migration/R*__*.sql` | Yes | A file with the `executeInTransaction=false` setting in its script configuration (`<file>.sql.conf`), or the global flag the config declares |
 | Liquibase (SQL format) | `**/changelog/**/*.sql` with the `--liquibase formatted sql` header | Yes | `--changeset ... runInTransaction:false` |
 | Rails / Active Record | `db/migrate/*.rb` | Yes | `disable_ddl_transaction!` in the class body |
