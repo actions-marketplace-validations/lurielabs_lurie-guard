@@ -4,13 +4,13 @@
 
 **A GitHub Action that reviews pull requests for the mistakes that cause production incidents and cloud cost, with measured evidence behind every rule.**
 
-> Status: **in design**. No product code yet. The documents in [`docs/`](docs/) are the specification; the first release follows them.
+> Status: **MVP in development, pre-release** (`0.1.0`, not yet tagged or published). The PostgreSQL pack is built and tested: 21 rules, the engine, the four outputs, the CLI. It has not run on a real repository yet; the pilots come next ([docs/ROADMAP.md](docs/ROADMAP.md)). The documents in [`docs/`](docs/) are the specification the code follows.
 
 Most database incidents start with a migration that looked fine in review: a `CREATE INDEX` that holds a `SHARE` lock on the orders table for the whole build, an `ALTER TABLE` queued behind a long report while every new query queues behind it, a `SET NOT NULL` that scans a hundred million rows under `ACCESS EXCLUSIVE`. The PostgreSQL manual documents every one of them. The PR gets approved anyway.
 
 lurie-guard parses the migrations in a PR with PostgreSQL's own parser, applies deterministic rules, and tells the developer what will happen, what to write instead, and when the rule does not apply. Every rule links to a test in [db-skills](https://github.com/rafapeixer/db-skills) that runs against real PostgreSQL 15 and 18 and shows the lock, the rewrite or the scan it prevents.
 
-## What it will do
+## What it does
 
 ```yaml
 # .github/workflows/lurie-guard.yml
@@ -41,8 +41,52 @@ jobs:
   version: 1
   fail_on: error     # block merges on error findings; default is none (report-only)
   ```
-- **Inline suppression with a reason**: `-- lurie-guard: ignore PG001 reason="orders is new in this release"`.
-- **No server, no telemetry.** Code never leaves the runner. With your own Anthropic key, the optional explanation runs inside your runner under your API terms.
+- **Inline suppression with a reason**: `-- lurie-guard: ignore PG001 reason="orders is new in this release"`. A suppression without a reason is reported and suppresses nothing; an unused one is reported too.
+- **No server, no telemetry.** Code never leaves the runner. The only host the action contacts is `api.github.com`; with your own Anthropic key, `api.anthropic.com` as well, from inside your runner under your API terms, and the explanation it adds never decides whether a finding exists.
+
+### What works in the MVP
+
+| Piece | State |
+|---|---|
+| Parser | PostgreSQL's own parser (`libpg_query` 18, WebAssembly), statements positioned in the host file; a file that does not parse gives one `info` finding and the run continues |
+| Rules | The 21 rules below, each with `bad`/`good` fixtures, an evidence link into db-skills at a pinned commit, and (for `error` rules) a cost test that runs on PostgreSQL 15 and 18 |
+| "Existing table" exemption | A table created by `CREATE TABLE` in any added migration file of the PR is new; rules PG001 to PG015 skip it |
+| Frameworks | Transaction wrapper per framework (table below), Flyway `.conf`, Liquibase `runInTransaction`, Rails `disable_ddl_transaction!`, Django `atomic = False`, Alembic `autocommit_block()`, dbmate `transaction:false` |
+| Host languages | Raw SQL from Rails `execute`, Django `RunSQL`, Alembic `op.execute`; the Rails helpers `add_index`, `add_column`, `add_foreign_key`, `change_column_null`, `change_column` (plus `create_table`, `drop_table`, `remove_column`, `rename_column`, `rename_table`) mapped to SQL; anything else listed as "not analyzed" |
+| Config | `.lurie-guard.yml` read from the base branch; unknown keys, rule ids or severities fail the run naming the key |
+| Outputs | One review per run with suggested changes and idempotent fingerprints; SARIF 2.1.0 validated against the schema, with `partialFingerprints` and in-source suppressions, uploaded by the action; job summary; annotations; outputs and exit code |
+| Fork PRs | Summary, annotations and exit code; comments and upload skipped (the token is read-only) |
+| Explainer | Optional, with your key, the rule's skill text as cached context, cost shown in the summary. Implemented and unit-tested with a fake client; not yet exercised against the live API |
+| CLI | `node dist/cli.js` (soon `npx lurie-guard`): the same engine on a folder or a list of files, for history scans |
+| Not yet | Django and Alembic DSL calls (`AddField`, `op.add_column`, ...) wait for the first pilot that asks ([ADR 0008](docs/adr/0008-host-language-migrations-mvp-scope.md)); the egress-proxy acceptance test runs only in CI once the repository is published |
+
+### Frameworks
+
+| Framework | Files | Wrapped in a transaction | Opt-out the detector recognizes | SQL analyzed |
+|---|---|---|---|---|
+| Plain SQL | `migrations/**/*.sql`, `db/migrations/**/*.sql`, `sql/migrations/**/*.sql` | No (or `transaction: always`) | `BEGIN`/`COMMIT` make the wrapped region explicit | All |
+| Flyway | `**/db/migration/V*__*.sql`, `R*__*.sql` | Yes | `<file>.sql.conf` with `executeInTransaction=false` | All |
+| Liquibase | `**/changelog/**/*.sql` with the `--liquibase formatted sql` header | Yes | `--changeset ... runInTransaction:false` | All |
+| Rails | `db/migrate/*.rb` | Yes | `disable_ddl_transaction!` | `execute` strings and heredocs; the helpers above |
+| Django | `**/migrations/[0-9]*.py` | Yes | `atomic = False` | `RunSQL` strings and lists |
+| Alembic | `**/versions/*.py` | Yes | `autocommit_block()`, an explicit `COMMIT` | `op.execute` strings and `text()` |
+| Prisma | `prisma/migrations/*/migration.sql` | Yes, no opt-out | - | All |
+| golang-migrate | `**/*.up.sql`, `**/*.down.sql` | No | - | All |
+| dbmate | `db/migrations/*.sql` with `-- migrate:up` | Yes | `-- migrate:up transaction:false` | All |
+| Sqitch | `deploy/*.sql` | Yes | - | All |
+
+`paths`, `exclude`, `framework` and `transaction` in `.lurie-guard.yml` override every built-in. Rails `datetime` maps to `timestamp(6)`, the framework default; an application that sets `datetime_type = :timestamptz` turns PG019 off.
+
+### Run it locally
+
+```sh
+npm ci && npm run build
+node dist/cli.js --root . db/migrate/20261019120000_add_index.rb   # one or more files
+node dist/cli.js --root . --format sarif --out findings.sarif        # every migration under the root
+node dist/cli.js --root . --fail-on error                            # exit 1 on errors
+```
+
+The CLI is the same bundle as the action and reads the same `.lurie-guard.yml`; it is how the pilots scan a repository's history.
 
 ## Rules (PostgreSQL pack, MVP)
 

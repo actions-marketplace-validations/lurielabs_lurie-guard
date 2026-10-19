@@ -76,7 +76,7 @@ Severity follows [RULES.md](RULES.md): `error` only with a measured assertion in
 | PG020 | json-column | warning | A column of type `json` (not `jsonb`) | pg-keys-and-types (rule 7) | `pg-keys-and-types/examples/bad/test.sql`: `json` keeps duplicate keys and has no `=` operator (`42883`) |
 | PG021 | varchar-or-char-length | info | A column of type `varchar(n)` or `char(n)` | pg-keys-and-types (rule 4) | `pg-keys-and-types/examples/bad/test.sql`: a cast silently truncates; shrinking the limit rewrites the table. `info` because many teams keep `varchar(n)` deliberately |
 
-Twenty-one rules; twenty on by default (PG021 is `info`, off by default; PG013 and PG014 are on as warnings). The suppression findings `PGS01` and `PGS02` (see "Suppression") are produced by the engine, not by rule folders, and are not counted here.
+Twenty-one rules; twenty on by default (PG021 is `info`, off by default; PG013 and PG014 are on as warnings). The engine produces four findings of its own, not from rule folders and not counted here: `PGS01 suppression-without-reason` (warning), `PGS02 unused-suppression` (info), `PGS03 ignore-all` (warning, the `ignore all` form, see "Suppression") and `PGS04 could-not-parse` (info, see "Parsing"). They have catalog entries so the SARIF rule list and the summary can name them.
 
 Candidate rules not in the MVP, because they need schema context or a measured fixture that does not exist yet: foreign key without an index on the referencing columns (needs the index list of the table), `ACCESS EXCLUSIVE` on more than one table in one transaction, `statement_timeout` lower than `lock_timeout`, partial index predicate that no query can match, `OFFSET` pagination and N+1 in application code (LLM layer, [ROADMAP.md](ROADMAP.md)).
 
