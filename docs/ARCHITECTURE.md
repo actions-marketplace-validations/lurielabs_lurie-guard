@@ -18,7 +18,7 @@ GitHub event (pull_request)
                                               └──────────┬───────────┘
                                                          │  parse tree per statement, with positions
                                                          ▼
-┌─────────────────┐   .pr-guard.yml (base)    ┌──────────────────────┐
+┌─────────────────┐   .lurie-guard.yml (base)    ┌──────────────────────┐
 │  config loader  │ ─────────────────────────▶│  rule engine         │  per-file state, "new table" set,
 └─────────────────┘                           │  rules/pg/*          │  transaction cursor, lock_timeout,
                                               └──────────┬───────────┘  NOT VALID constraints
@@ -42,7 +42,7 @@ GitHub event (pull_request)
 
 ### Diff reader
 
-Lists the PR's files through the REST API (paginated, 100 per page) and reads the content of added and modified files from the checkout at the head commit (`actions/checkout` with `ref: ${{ github.event.pull_request.head.sha }}` is the documented default for `pull_request`). It also fetches the base branch's `.pr-guard.yml` through the contents API, so the PR cannot change its own rules. It never reads files outside the diff except the config. No `git` subprocess; the API and the filesystem are enough.
+Lists the PR's files through the REST API (paginated, 100 per page) and reads the content of added and modified files from the checkout at the head commit (`actions/checkout` with `ref: ${{ github.event.pull_request.head.sha }}` is the documented default for `pull_request`). It also fetches the base branch's `.lurie-guard.yml` through the contents API, so the PR cannot change its own rules. It never reads files outside the diff except the config. No `git` subprocess; the API and the filesystem are enough.
 
 ### Migration detector
 
@@ -50,7 +50,7 @@ Classifies each file by path glob and framework, decides whether the framework w
 
 ### SQL parser
 
-`libpg_query` is the PostgreSQL server's parser extracted as a C library (BSD-3-Clause, [pganalyze/libpg_query](https://github.com/pganalyze/libpg_query)). The Node binding `libpg-query` (MIT) ships a pure WebAssembly build: "WASM-only build system for true cross-platform compatibility without native compilation dependencies"; the current npm release (18.1.5) uses the PostgreSQL 18 grammar and returns the parse tree as JSON ([libpg-query on npm](https://registry.npmjs.org/libpg-query/latest), [repository](https://github.com/launchql/libpg-query-node)). pr-guard pins the package to an exact version and vendors the `.wasm` file into `dist/`, so the action has no install step and no native build on the runner. The parse tree exposes statement positions (`stmt_location`, `stmt_len`), which the engine maps to line ranges for comments and SARIF.
+`libpg_query` is the PostgreSQL server's parser extracted as a C library (BSD-3-Clause, [pganalyze/libpg_query](https://github.com/pganalyze/libpg_query)). The Node binding `libpg-query` (MIT) ships a pure WebAssembly build: "WASM-only build system for true cross-platform compatibility without native compilation dependencies"; the current npm release (18.1.5) uses the PostgreSQL 18 grammar and returns the parse tree as JSON ([libpg-query on npm](https://registry.npmjs.org/libpg-query/latest), [repository](https://github.com/launchql/libpg-query-node)). lurie-guard pins the package to an exact version and vendors the `.wasm` file into `dist/`, so the action has no install step and no native build on the runner. The parse tree exposes statement positions (`stmt_location`, `stmt_len`), which the engine maps to line ranges for comments and SARIF.
 
 Why PostgreSQL's own parser and not a hand-written one: a rule that matches on `RangeVar`, `IndexStmt.concurrent`, `AlterTableCmd.subtype` and `Constraint.skip_validation` is exact. A regular expression over SQL text is not, and false positives are bugs with a deadline ([RULES.md](RULES.md)). The cost is the parse tree's verbosity and a 2 to 4 MB WASM file; both are acceptable within the performance budget.
 
@@ -87,7 +87,7 @@ Runs only when the `anthropic_api_key` input is set. For each deterministic find
 
 Model and cost, from the official model page ([platform.claude.com/docs/en/about-claude/models/overview](https://platform.claude.com/docs/en/about-claude/models/overview)) and the prompt caching page ([platform.claude.com/docs/en/build-with-claude/prompt-caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)):
 
-| Model | Input $/MTok | Output $/MTok | 5-minute cache write | Cache read | Default in pr-guard |
+| Model | Input $/MTok | Output $/MTok | 5-minute cache write | Cache read | Default in lurie-guard |
 |---|---|---|---|---|---|
 | `claude-opus-5-5` | 4.00 | 20.00 | 5.00 | 0.20 | when the client sets `llm.model: claude-opus-5-5` |
 | `claude-sonnet-5-5` | 2.00 | 10.00 | 2.50 | 0.10 | **default** |
@@ -105,15 +105,15 @@ The LLM-only checks (`extra_checks`, post-MVP) use the same path with the applic
 - `runs.using` accepts `node20` and `node24` ([metadata syntax](https://docs.github.com/en/actions/reference/metadata-syntax-for-github-actions)); GitHub's changelog of 2026-09-23 says "Node 20 is no longer available on GitHub Actions runners" and "runners now use Node 24 for JavaScript actions" ([changelog](https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/)). So `node24`.
 - The parser is available as pure WebAssembly for Node, so the action stays "pure JavaScript and not rely on other binaries", which the docs say is what makes an action work on every GitHub-hosted runner.
 
-Alternatives considered: Rust or Go with `pg_query.rs` / `pg_query_go` (both track the PostgreSQL 17 grammar as of their September 2026 releases, Go needs cgo, and a native binary needs a Docker action or a release download step); a composite action downloading a binary (an extra network dependency on the PR path, and Marketplace users expect `uses:` to be enough). A CLI for local use will be built from the same bundle (`npx pr-guard`), which is also how the pilots run it on history.
+Alternatives considered: Rust or Go with `pg_query.rs` / `pg_query_go` (both track the PostgreSQL 17 grammar as of their September 2026 releases, Go needs cgo, and a native binary needs a Docker action or a release download step); a composite action downloading a binary (an extra network dependency on the PR path, and Marketplace users expect `uses:` to be enough). A CLI for local use will be built from the same bundle (`npx lurie-guard`), which is also how the pilots run it on history.
 
 ## Data flow and privacy
 
 1. The runner checks out the head commit (the workflow's `actions/checkout`).
 2. The action calls `api.github.com` to list PR files, read the base config, post the review, upload the SARIF. All with `GITHUB_TOKEN`.
 3. Parsing and rules run in the runner's process. No file is written outside the workspace except the SARIF and summary.
-4. If and only if `anthropic_api_key` is set, the action calls `api.anthropic.com` with the statements of the findings and the skill text. Under Anthropic's commercial terms "Anthropic may not train models on Customer Content from Services" ([commercial terms](https://www.anthropic.com/legal/commercial-terms)); API inputs and outputs are deleted from Anthropic's backend within 30 days by default, and zero-data-retention is available per organization ([data retention](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-personal-data), [API and data retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention)). The client chooses the model and the terms; pr-guard sends only the statements that produced findings, never whole files.
-5. Nothing is sent to any pr-guard server. There is none. No telemetry, no version check, no license call on the PR path.
+4. If and only if `anthropic_api_key` is set, the action calls `api.anthropic.com` with the statements of the findings and the skill text. Under Anthropic's commercial terms "Anthropic may not train models on Customer Content from Services" ([commercial terms](https://www.anthropic.com/legal/commercial-terms)); API inputs and outputs are deleted from Anthropic's backend within 30 days by default, and zero-data-retention is available per organization ([data retention](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-personal-data), [API and data retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention)). The client chooses the model and the terms; lurie-guard sends only the statements that produced findings, never whole files.
+5. Nothing is sent to any lurie-guard server. There is none. No telemetry, no version check, no license call on the PR path.
 
 The acceptance test runs the action behind an egress proxy that allows only `api.github.com` (and `api.anthropic.com` when the key is set) and fails on any other host.
 
@@ -149,7 +149,7 @@ The engine, the reporters, the suppression syntax, the config schema and the rul
 
 ## GitHub App later
 
-A GitHub App gives: installation on an organization without a workflow file, comments on fork PRs (the App has its own token), Checks API annotations (write access to checks "is only available to GitHub Apps", up to 50 annotations per request, [Checks API](https://docs.github.com/en/rest/checks/runs)), higher rate limits. It costs a server that receives webhooks, which breaks "no pr-guard server sees code" unless the App only dispatches a `repository_dispatch` or `workflow_dispatch` to the client's own runner and reads the results back. That design (App as a thin dispatcher, engine still in the client's runner) is the one the roadmap plans; it is not needed for the MVP or the pilots ([ROADMAP.md](ROADMAP.md), Phase 4).
+A GitHub App gives: installation on an organization without a workflow file, comments on fork PRs (the App has its own token), Checks API annotations (write access to checks "is only available to GitHub Apps", up to 50 annotations per request, [Checks API](https://docs.github.com/en/rest/checks/runs)), higher rate limits. It costs a server that receives webhooks, which breaks "no lurie-guard server sees code" unless the App only dispatches a `repository_dispatch` or `workflow_dispatch` to the client's own runner and reads the results back. That design (App as a thin dispatcher, engine still in the client's runner) is the one the roadmap plans; it is not needed for the MVP or the pilots ([ROADMAP.md](ROADMAP.md), Phase 4).
 
 ## ADRs
 
@@ -157,7 +157,7 @@ A GitHub App gives: installation on an organization without a workflow file, com
 |---|---|
 | [0001](adr/0001-runtime-javascript-action-with-wasm-parser.md) | JavaScript action on Node 24; libpg_query as WebAssembly |
 | [0002](adr/0002-deterministic-core-optional-llm.md) | Deterministic core; the LLM explains and extends, never decides |
-| [0003](adr/0003-bring-your-own-key.md) | Bring your own Anthropic key; no pr-guard server |
+| [0003](adr/0003-bring-your-own-key.md) | Bring your own Anthropic key; no lurie-guard server |
 | [0004](adr/0004-outputs-review-comments-sarif-summary.md) | Review comments, SARIF and job summary as the outputs |
 | [0005](adr/0005-name.md) | The name |
 | [0006](adr/0006-license.md) | Apache-2.0 |

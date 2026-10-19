@@ -4,7 +4,7 @@ Status: accepted, 2026-10-19
 
 ## Context
 
-The sister repositories are MIT. pr-guard is a product that will have a paid plan for private repositories and, later, paid packs and a GitHub App. The public repository must be usable by anyone (pilots, CodeRabbit-style integrators, the Marketplace), must protect users and the author from patent claims by contributors, and must not confuse "open source" with "source available".
+The sister repositories are MIT. lurie-guard is a product that will have a paid plan for private repositories and, later, paid packs and a GitHub App. The public repository must be usable by anyone (pilots, CodeRabbit-style integrators, the Marketplace), must protect users and the author from patent claims by contributors, and must not confuse "open source" with "source available".
 
 Options, from the official texts:
 

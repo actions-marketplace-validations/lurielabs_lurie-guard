@@ -8,7 +8,7 @@ Coding agents make this worse in two ways. They write more migrations, faster, a
 
 The place to catch all of this is the pull request, before merge, with a message that says what will happen and what to write instead.
 
-## What pr-guard is
+## What lurie-guard is
 
 A GitHub Action that reviews pull requests for the mistakes that cause production incidents and cloud cost, and backs every finding with measured evidence. It installs in two minutes and needs no account, no server and no database connection.
 
@@ -16,7 +16,7 @@ Three things make it different from what exists:
 
 1. **Every rule has proof.** Each rule maps to a skill in the sister repositories whose examples run against real PostgreSQL 15 and 18 in CI and assert the cost: the lock mode in `pg_locks`, the changed `relfilenode`, the sequential scan, the SQLSTATE, the index size. The rule's message quotes that number. A reviewer who disagrees can run the fixture.
 2. **Deterministic first, LLM second.** The core parses SQL with PostgreSQL's own parser and applies rules as code. It produces the same result on every run and needs no network. The optional LLM layer uses the client's own Anthropic key, runs inside the client's runner, explains findings in plain words and catches what a parser cannot (N+1 in application code, a transaction wrapped around an HTTP call). It never decides whether a deterministic finding exists.
-3. **Rules come from measured skills, not from opinions.** The go-skills, java-skills and db-skills repositories already show, with evals and load benchmarks, that their rules change what agents write and what the result costs on AWS. pr-guard is the enforcement side of the same evidence: the skills teach the agent, the action checks the PR.
+3. **Rules come from measured skills, not from opinions.** The go-skills, java-skills and db-skills repositories already show, with evals and load benchmarks, that their rules change what agents write and what the result costs on AWS. lurie-guard is the enforcement side of the same evidence: the skills teach the agent, the action checks the PR.
 
 ## Who pays
 
@@ -32,7 +32,7 @@ Public repositories are free forever. Private repositories pay per repository or
 - Coding agents write a growing share of code. GitHub's Octoverse 2025 reports a new developer joining every second, TypeScript becoming the most used language on GitHub driven by AI-assisted coding, and teams moving toward typed languages "that make agent-assisted coding more reliable in production" ([Octoverse 2025](https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/)). Review capacity does not grow at that pace; deterministic checks do.
 - GitHub code scanning accepts SARIF from any tool, is free on public repositories, and shows findings in the same place as security alerts ([SARIF support](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning)). A linter can be a first-class citizen of the PR without a dashboard of its own.
 - PostgreSQL's parser is available as a library (`libpg_query`) with bindings that compile to WebAssembly, so a JavaScript action can parse SQL exactly as the server does, with no native build on the runner.
-- The AI reviewers that exist (CodeRabbit, Copilot code review, Greptile) send code to a vendor and give opinions. The migration linters that exist (Squawk, strong_migrations, Atlas) give rules without measured evidence and without an explanation layer. The gap between the two is where pr-guard sits ([COMPETITION.md](COMPETITION.md)).
+- The AI reviewers that exist (CodeRabbit, Copilot code review, Greptile) send code to a vendor and give opinions. The migration linters that exist (Squawk, strong_migrations, Atlas) give rules without measured evidence and without an explanation layer. The gap between the two is where lurie-guard sits ([COMPETITION.md](COMPETITION.md)).
 
 ## What success looks like
 
@@ -40,7 +40,7 @@ Public repositories are free forever. Private repositories pay per repository or
 
 **6 months.** A paid plan for private repositories with the first paying customers. The LLM explainer is generally available with a measured cost per PR. The MySQL pack ships from db-skills (`mysql-online-ddl`, `mysql-keys-and-types`). The first language pack (Java from java-skills: pool sizing, transactions around network calls, Flyway transactional lock) is in pilots. A public page lists every rule with its evidence, and a public corpus of real-world migration findings, anonymized, shows the false-positive rate.
 
-**12 months.** Packs for PostgreSQL, MySQL, Java, Go, TypeScript and Python. A GitHub App for organizations that want installation without a workflow file and comments on fork PRs. Revenue covers the work. The sister repositories feed the packs on a fixed cadence: a new skill in go-skills or java-skills becomes a rule in pr-guard within one release. The action is cited in at least one postmortem as the thing that would have caught it.
+**12 months.** Packs for PostgreSQL, MySQL, Java, Go, TypeScript and Python. A GitHub App for organizations that want installation without a workflow file and comments on fork PRs. Revenue covers the work. The sister repositories feed the packs on a fixed cadence: a new skill in go-skills or java-skills becomes a rule in lurie-guard within one release. The action is cited in at least one postmortem as the thing that would have caught it.
 
 ## What it will not become
 

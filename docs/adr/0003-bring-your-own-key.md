@@ -1,4 +1,4 @@
-# ADR 0003: Bring your own Anthropic key; no pr-guard server sees code
+# ADR 0003: Bring your own Anthropic key; no lurie-guard server sees code
 
 Status: accepted, 2026-10-19
 
@@ -6,7 +6,7 @@ Status: accepted, 2026-10-19
 
 The LLM layer needs a model. Three ways to pay for it:
 
-1. pr-guard runs a service with its own key and bills the client (the CodeRabbit and Greptile model). Code then transits a pr-guard server, which needs security attestations, a data processing agreement, retention policies and an on-call rotation before the first pilot.
+1. lurie-guard runs a service with its own key and bills the client (the CodeRabbit and Greptile model). Code then transits a lurie-guard server, which needs security attestations, a data processing agreement, retention policies and an on-call rotation before the first pilot.
 2. The client provides their own Anthropic key as a repository or organization secret; the action calls the API from inside the runner.
 3. Both, with the service as the default.
 
@@ -16,11 +16,11 @@ Cost with prompt caching on `claude-sonnet-5-5` is about $0.025 per PR with thre
 
 ## Decision
 
-Bring your own key. The action reads `anthropic_api_key` from an input, calls `api.anthropic.com` from the runner with the official TypeScript SDK, sends only the statements that produced findings plus the skill text, and reports tokens and cost. There is no pr-guard server, no telemetry, no proxy. Without the key the action is complete; only the explanation is missing.
+Bring your own key. The action reads `anthropic_api_key` from an input, calls `api.anthropic.com` from the runner with the official TypeScript SDK, sends only the statements that produced findings plus the skill text, and reports tokens and cost. There is no lurie-guard server, no telemetry, no proxy. Without the key the action is complete; only the explanation is missing.
 
 ## Alternatives considered
 
-- **Hosted service with pr-guard's key.** Rejected for now: it breaks "code never leaves the runner", which is the simplest security story a pilot can approve, and it needs infrastructure before there is revenue. It can be added later as an opt-in for clients who do not want to manage a key, with the same inside-the-runner guarantee impossible to keep; that trade-off would be its own ADR.
+- **Hosted service with lurie-guard's key.** Rejected for now: it breaks "code never leaves the runner", which is the simplest security story a pilot can approve, and it needs infrastructure before there is revenue. It can be added later as an opt-in for clients who do not want to manage a key, with the same inside-the-runner guarantee impossible to keep; that trade-off would be its own ADR.
 - **Other providers or local models.** The explainer's quality depends on the skills context and prompt caching; the SDK and pricing in this design are Anthropic's. The interface is small enough to add a second provider if a pilot requires it, but the MVP does not promise it.
 
 ## Consequences

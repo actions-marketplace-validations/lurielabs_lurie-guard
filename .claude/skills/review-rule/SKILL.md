@@ -1,6 +1,6 @@
 ---
 name: review-rule
-description: Review one pr-guard rule against docs/RULES.md, its fixtures and the sister-repository skill it enforces. Use before opening a PR for a new or changed rule.
+description: Review one lurie-guard rule against docs/RULES.md, its fixtures and the sister-repository skill it enforces. Use before opening a PR for a new or changed rule.
 argument-hint: <ID>
 disable-model-invocation: true
 ---

@@ -1,4 +1,4 @@
-# pr-guard
+# lurie-guard
 
 [English](README.md) | **Português**
 
@@ -8,13 +8,13 @@
 
 A maioria dos incidentes de banco começa com uma migration que parecia boa na revisão: um `CREATE INDEX` que segura um lock `SHARE` na tabela de pedidos durante toda a construção, um `ALTER TABLE` enfileirado atrás de um relatório longo enquanto toda consulta nova enfileira atrás dele, um `SET NOT NULL` que varre cem milhões de linhas sob `ACCESS EXCLUSIVE`. O manual do PostgreSQL documenta cada um deles. O PR é aprovado mesmo assim.
 
-O pr-guard analisa as migrations de um PR com o próprio parser do PostgreSQL, aplica regras determinísticas e diz ao desenvolvedor o que vai acontecer, o que escrever no lugar e quando a regra não se aplica. Cada regra aponta para um teste em [db-skills](https://github.com/rafapeixer/db-skills) que roda contra PostgreSQL 15 e 18 de verdade e mostra o lock, a reescrita ou a varredura que ela evita.
+O lurie-guard analisa as migrations de um PR com o próprio parser do PostgreSQL, aplica regras determinísticas e diz ao desenvolvedor o que vai acontecer, o que escrever no lugar e quando a regra não se aplica. Cada regra aponta para um teste em [db-skills](https://github.com/rafapeixer/db-skills) que roda contra PostgreSQL 15 e 18 de verdade e mostra o lock, a reescrita ou a varredura que ela evita.
 
 ## O que ele vai fazer
 
 ```yaml
-# .github/workflows/pr-guard.yml
-name: pr-guard
+# .github/workflows/lurie-guard.yml
+name: lurie-guard
 on:
   pull_request:
 permissions:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7          # fixe em um SHA de commit no seu repositório
-      - uses: rafapeixer/pr-guard@v1       # fixe em um SHA de commit no seu repositório
+      - uses: lurielabs/lurie-guard@v1       # fixe em um SHA de commit no seu repositório
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # opcional: explicações em linguagem simples com a sua própria chave
 ```
@@ -34,8 +34,8 @@ jobs:
 - **Comentários de revisão** na linha exata, com uma sugestão de alteração quando a correção é uma única instrução.
 - **SARIF** enviado ao code scanning do GitHub, com fingerprints estáveis e a documentação da regra.
 - **Um resumo do job** com todos os achados, todas as supressões e seus motivos.
-- **Bloqueio do merge** em erros (`fail_on: error`), configurável por regra em `.pr-guard.yml`, lido do branch base para que um PR não consiga desligar as próprias verificações.
-- **Supressão inline com motivo**: `-- pr-guard: ignore PG001 reason="orders é nova nesta release"`.
+- **Bloqueio do merge** em erros (`fail_on: error`), configurável por regra em `.lurie-guard.yml`, lido do branch base para que um PR não consiga desligar as próprias verificações.
+- **Supressão inline com motivo**: `-- lurie-guard: ignore PG001 reason="orders é nova nesta release"`.
 - **Sem servidor, sem telemetria.** O código nunca sai do runner. Com a sua própria chave da Anthropic, a explicação opcional roda dentro do seu runner, sob os termos da sua API.
 
 ## Regras (pacote PostgreSQL, MVP)
@@ -70,7 +70,7 @@ A lógica de detecção completa, as mensagens, as exceções e os fixtures est�
 
 ## Comparação honesta
 
-O [Squawk](https://github.com/sbdchd/squawk) já faz lint de SQL de migrations PostgreSQL com 78 regras, é gratuito, mantido ativamente e cobre a maior parte da lista acima. Se você quer um linter de arquivos SQL com comentário no PR hoje, use-o. O pr-guard difere na evidência por regra, na detecção de transação por framework (Flyway, Rails, Django, Prisma), no SARIF e nas sugestões de alteração, na camada opcional de explicação e nos pacotes que vêm a seguir (MySQL, Java, Go) a partir dos repositórios irmãos. A comparação completa, incluindo Atlas, Eugene, strong_migrations e os revisores de IA, está em [docs/COMPETITION.md](docs/COMPETITION.md).
+O [Squawk](https://github.com/sbdchd/squawk) já faz lint de SQL de migrations PostgreSQL com 78 regras, é gratuito, mantido ativamente e cobre a maior parte da lista acima. Se você quer um linter de arquivos SQL com comentário no PR hoje, use-o. O lurie-guard difere na evidência por regra, na detecção de transação por framework (Flyway, Rails, Django, Prisma), no SARIF e nas sugestões de alteração, na camada opcional de explicação e nos pacotes que vêm a seguir (MySQL, Java, Go) a partir dos repositórios irmãos. A comparação completa, incluindo Atlas, Eugene, strong_migrations e os revisores de IA, está em [docs/COMPETITION.md](docs/COMPETITION.md).
 
 ## Documentos
 
@@ -81,7 +81,7 @@ O [Squawk](https://github.com/sbdchd/squawk) já faz lint de SQL de migrations P
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Componentes, runtime, fluxo de dados, modelo de segurança, como os pacotes se encaixam |
 | [docs/RULES.md](docs/RULES.md) | O padrão de autoria de regras: fixtures, evidência, severidade, falsos positivos |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Fases com critérios de saída, pilotos, pacotes, o plano de skills por linguagem |
-| [docs/COMPETITION.md](docs/COMPETITION.md) | O que existe e onde o pr-guard compete e onde não compete |
+| [docs/COMPETITION.md](docs/COMPETITION.md) | O que existe e onde o lurie-guard compete e onde não compete |
 | [docs/adr/](docs/adr/) | Um registro de decisão por decisão-chave |
 | [CLAUDE.md](CLAUDE.md) | Como agentes e contribuidores trabalham neste repositório |
 

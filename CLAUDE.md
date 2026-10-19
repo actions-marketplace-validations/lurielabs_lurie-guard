@@ -4,10 +4,10 @@ This file guides Claude Code (and any other coding agent) when working inside th
 
 ## What this repository is
 
-`pr-guard` is a GitHub Action (later also a GitHub App) that reviews pull requests for the mistakes that cause production incidents and cloud cost, and backs every finding with measured evidence. It installs in two minutes:
+`lurie-guard` is a GitHub Action (later also a GitHub App) that reviews pull requests for the mistakes that cause production incidents and cloud cost, and backs every finding with measured evidence. It installs in two minutes:
 
 ```yaml
-- uses: rafapeixer/pr-guard@v1
+- uses: lurielabs/lurie-guard@v1
   with:
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # optional, bring your own key
 ```
@@ -24,7 +24,7 @@ Sister repositories: [db-skills](https://github.com/rafapeixer/db-skills) (the e
 
 1. **Deterministic core.** A core rule needs no network, no LLM and no database to run. Given the same diff and config it produces the same findings, byte for byte. CI asserts this by running every fixture twice and diffing the output.
 2. **Every rule has a fixture and an evidence link.** A rule ships only with at least one `bad` fixture that triggers it, at least one `good` fixture that does not, and a link to the db-skills (or other sister repo) example whose test shows the cost of the mistake. "It is bad practice" is not evidence; a lock mode in `pg_locks`, a changed `relfilenode`, a sequential scan count or a measured index size is.
-3. **Code never leaves the runner.** The action reads the diff from the checkout and the GitHub API, writes comments and SARIF back, and makes no other network call. When the client provides an Anthropic key, the LLM call is made from inside the client's runner with the client's key and the client's data-handling terms; pr-guard has no server that sees code. There is no telemetry.
+3. **Code never leaves the runner.** The action reads the diff from the checkout and the GitHub API, writes comments and SARIF back, and makes no other network call. When the client provides an Anthropic key, the LLM call is made from inside the client's runner with the client's key and the client's data-handling terms; lurie-guard has no server that sees code. There is no telemetry.
 4. **Least privilege.** The workflow needs only `contents: read`, `pull-requests: write` and `security-events: write`. The action never asks for more and documents why each one is needed.
 5. **False positives are bugs with a deadline.** An `error`-severity rule that produces a confirmed false positive is demoted to `warning` in a patch release within 48 hours and stays there until the fixture that reproduces the false positive is green. See "Severity policy" below.
 6. **Rules match the skills.** A rule's position (what is wrong, what to do instead, when not to apply) is the skill's position. If a rule needs a different position, the skill changes first, in its own repository, with its own test.
@@ -35,7 +35,7 @@ Sister repositories: [db-skills](https://github.com/rafapeixer/db-skills) (the e
 Planned layout. The product code does not exist yet; the documents in `docs/` are the design, and this section is updated as the code lands.
 
 ```
-pr-guard/
+lurie-guard/
 ├── CLAUDE.md                    # this file
 ├── README.md / README.pt-BR.md  # what it does, install, status (English / Portuguese, kept in sync)
 ├── LICENSE                      # Apache-2.0 (docs/adr/0006-license.md)
@@ -49,7 +49,7 @@ pr-guard/
 │   ├── ARCHITECTURE.md          # components, runtime, data flow, security model, rule packs
 │   ├── RULES.md                 # the rule authoring standard
 │   ├── ROADMAP.md               # phases with exit criteria, language-skills plan
-│   ├── COMPETITION.md           # what exists, where pr-guard differs, where it does not compete
+│   ├── COMPETITION.md           # what exists, where lurie-guard differs, where it does not compete
 │   ├── adr/                     # one ADR per key decision, numbered
 │   └── internal/                # gitignored: pricing, pilots, go-to-market
 │
@@ -152,7 +152,7 @@ Decisions that shape the product are recorded as ADRs in `docs/adr/`, one file p
 |---|---|
 | [0001](docs/adr/0001-runtime-javascript-action-with-wasm-parser.md) | JavaScript action on Node, PostgreSQL's parser compiled to WebAssembly |
 | [0002](docs/adr/0002-deterministic-core-optional-llm.md) | Deterministic core; LLM only explains and extends, never decides |
-| [0003](docs/adr/0003-bring-your-own-key.md) | Bring your own Anthropic key; no pr-guard server sees code |
+| [0003](docs/adr/0003-bring-your-own-key.md) | Bring your own Anthropic key; no lurie-guard server sees code |
 | [0004](docs/adr/0004-outputs-review-comments-sarif-summary.md) | Review comments plus SARIF plus job summary |
 | [0005](docs/adr/0005-name.md) | The name |
 | [0006](docs/adr/0006-license.md) | Apache-2.0 for the action and the rules |

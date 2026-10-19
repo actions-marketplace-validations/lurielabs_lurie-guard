@@ -24,7 +24,7 @@ The parser options, from the projects' own pages:
 
 ## Decision
 
-TypeScript, bundled to one JavaScript file, declared as `runs.using: node24`, with `libpg-query`'s WebAssembly build vendored into `dist/`. The same bundle is published as a CLI (`npx pr-guard`) for local runs and for the pilots' history scans.
+TypeScript, bundled to one JavaScript file, declared as `runs.using: node24`, with `libpg-query`'s WebAssembly build vendored into `dist/`. The same bundle is published as a CLI (`npx lurie-guard`) for local runs and for the pilots' history scans.
 
 ## Alternatives considered
 

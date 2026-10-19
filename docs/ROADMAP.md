@@ -45,7 +45,7 @@ What to measure per pilot, from the job summaries (no telemetry; the pilot share
 
 Testimonial template, filled with the pilot's own numbers:
 
-> In N weeks pr-guard reviewed M migration files in our repositories and flagged K statements. J of them would have locked a production table; the one on `<table>` would have blocked writes for the whole index build. Zero false positives on blocking rules. Our developers fixed findings from the comment without asking. — Name, role, company
+> In N weeks lurie-guard reviewed M migration files in our repositories and flagged K statements. J of them would have locked a production table; the one on `<table>` would have blocked writes for the whole index build. Zero false positives on blocking rules. Our developers fixed findings from the comment without asking. — Name, role, company
 
 Exit criteria: three pilots completed four weeks; the measures above met; at least three written testimonials; the false-positive procedure in [RULES.md](RULES.md) exercised at least once end to end; every rule's "When it does not apply" updated with what the pilots taught. Release `v1.0.0` and the `v1` tag.
 
@@ -80,7 +80,7 @@ Exit criteria: the App installed on one organization with more than 20 repositor
 
 ## Language skills plan
 
-The language packs need skills repositories with the same shape as go-skills and java-skills: one decision per skill, tested good and bad examples, `claude plugin eval` with and without the plugin, the `orders-api` benchmark at AWS t4g sizes with cost, and a reference service. Each repository feeds a pr-guard pack. The order is decided by market size and by where agents make expensive mistakes with databases and runtime resources.
+The language packs need skills repositories with the same shape as go-skills and java-skills: one decision per skill, tested good and bad examples, `claude plugin eval` with and without the plugin, the `orders-api` benchmark at AWS t4g sizes with cost, and a reference service. Each repository feeds a lurie-guard pack. The order is decided by market size and by where agents make expensive mistakes with databases and runtime resources.
 
 Market data, from the official survey pages. Stack Overflow 2026 ([survey.stackoverflow.co/2026/technology](https://survey.stackoverflow.co/2026/technology), all respondents, share who did extensive work in the past year): JavaScript 62.0%, SQL 58.4%, Python 58.0%, TypeScript 43.8%, Java 27.6%, C# 27.1%, Rust 18.0%, PHP 17.7%, Go 16.5%, Kotlin 10.8%, Ruby 5.8%. Databases: PostgreSQL 57.9%, SQLite 42.1%, MySQL 35.1%, MongoDB 19.0%. GitHub Octoverse 2025 ([github.blog](https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/), ranking by monthly contributors): TypeScript first (+66% year over year), Python second (+49%), JavaScript third, Java fourth, C# fifth, PHP sixth, Go tenth; "developers are shifting toward typed languages that make agent-assisted coding more reliable in production".
 
@@ -96,4 +96,4 @@ Market data, from the official survey pages. Stack Overflow 2026 ([survey.stacko
 | 5 | Rust | rust-skills | 18.0% and growing, but a small share of database-backed web services; later | `sqlx` pool sizing, blocking in async, migrations in a transaction |
 | Detector only | Ruby / Rails, PHP / Laravel | none | Migration-heavy ecosystems (5.8% and 17.7%) already covered by the migration detector; strong_migrations exists for Rails | Rules come from the `pg` pack; no language pack planned |
 
-Each new skills repository follows the pattern exactly: `CLAUDE.md` with the same rules, `skills/<decision>/SKILL.md` with examples that run in CI, `evals/` with and without the plugin, `benchmarks/orders-api/` in the go-skills harness at t4g sizes with cost tables, a reference service, bilingual README. Its skills become pr-guard rules only after the evals show the gain and the benchmark shows the cost.
+Each new skills repository follows the pattern exactly: `CLAUDE.md` with the same rules, `skills/<decision>/SKILL.md` with examples that run in CI, `evals/` with and without the plugin, `benchmarks/orders-api/` in the go-skills harness at t4g sizes with cost tables, a reference service, bilingual README. Its skills become lurie-guard rules only after the evals show the gain and the benchmark shows the cost.

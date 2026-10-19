@@ -1,6 +1,6 @@
 ---
 name: new-rule
-description: Scaffold a new pr-guard rule from the template, with its fixtures copied from the sister-repository skill, then validate it. Use when adding a rule to this repository.
+description: Scaffold a new lurie-guard rule from the template, with its fixtures copied from the sister-repository skill, then validate it. Use when adding a rule to this repository.
 argument-hint: <ID> <slug>
 disable-model-invocation: true
 ---

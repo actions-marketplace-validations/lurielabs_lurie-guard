@@ -1,6 +1,6 @@
 # Rule authoring standard
 
-Every finding pr-guard reports comes from a rule. This document is the contract a rule must meet before it ships. `scripts/validate.sh` enforces the mechanical parts; a reviewer checks the rest with `/review-rule`.
+Every finding lurie-guard reports comes from a rule. This document is the contract a rule must meet before it ships. `scripts/validate.sh` enforces the mechanical parts; a reviewer checks the rest with `/review-rule`.
 
 ## One rule, one mistake
 
@@ -83,7 +83,7 @@ The message ends with the rule id and the evidence link: `(PG001, evidence)`. Va
 |---|---|---|---|
 | `error` | The statement will take an outage-class lock, rewrite or scan the table, or fail outright on a non-empty table | A measured assertion (lock mode, filenode change, scan count, SQLSTATE) in a sister-repository test, or in this repository's `scripts/test-fixtures.sh` run against PostgreSQL 15 and 18 when the sister repository has no example for the statement; in that case the issue to add the example upstream is linked in the frontmatter | Fails the check when `fail_on: error` (the default) |
 | `warning` | The statement has a documented cost or breaks the running release, but legitimate exceptions are common or the cost is not measured in a fixture | A primary-source citation; a measured fixture when one exists | Reported, never fails the check by default |
-| `info` | An opinion the skills hold that teams may reasonably reject | A primary-source citation | Off by default; enabled per rule in `.pr-guard.yml` |
+| `info` | An opinion the skills hold that teams may reasonably reject | A primary-source citation | Off by default; enabled per rule in `.lurie-guard.yml` |
 
 A rule starts at the severity its evidence supports, not higher. A `warning` is promoted to `error` only when all of the following hold:
 
@@ -108,12 +108,12 @@ A report that the rule is right but the team disagrees with the position is not 
 A rule is deprecated when the database no longer has the cost (for example PostgreSQL makes an operation metadata-only), when the skill changes its position, or when a better rule replaces it.
 
 1. Set `status: deprecated` and add a **Deprecated** line under the frontmatter saying why and, if there is one, the replacement id.
-2. The rule stops running by default in the next minor release. Enabling it explicitly in `.pr-guard.yml` still works and prints a deprecation note.
+2. The rule stops running by default in the next minor release. Enabling it explicitly in `.lurie-guard.yml` still works and prints a deprecation note.
 3. The folder, the fixtures and the id stay forever. The README index moves the rule to a "Deprecated" table.
 
 ## Version gates
 
-PostgreSQL versions differ. A rule whose cost or fix depends on the major says so inline, as the skills do ("on PG 18+ use `ADD CONSTRAINT ... NOT NULL ... NOT VALID`"). The detector reads `postgres_version` from `.pr-guard.yml` (default: 15, the oldest major db-skills tests) and adjusts the fix text, never the finding: a statement that is unsafe on 15 is reported even when the configured version is 18, unless the statement is safe on 18 and the config says 18.
+PostgreSQL versions differ. A rule whose cost or fix depends on the major says so inline, as the skills do ("on PG 18+ use `ADD CONSTRAINT ... NOT NULL ... NOT VALID`"). The detector reads `postgres_version` from `.lurie-guard.yml` (default: 15, the oldest major db-skills tests) and adjusts the fix text, never the finding: a statement that is unsafe on 15 is reported even when the configured version is 18, unless the statement is safe on 18 and the config says 18.
 
 ## Checklist before opening the PR
 

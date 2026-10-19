@@ -17,7 +17,7 @@ A finding is useful where the developer and the reviewer look. GitHub offers fou
 All four from one list of findings, each reporter independent:
 
 1. One review per run with inline comments (`event: COMMENT`, never `REQUEST_CHANGES`), suggested changes where the fix is a one-statement replacement, idempotent across runs through a hidden fingerprint list.
-2. One SARIF 2.1.0 file per run, category `pr-guard/<pack>`, with the rule catalog, `help.markdown`, `partialFingerprints`, and in-source suppressions; uploaded by the action when permitted.
+2. One SARIF 2.1.0 file per run, category `lurie-guard/<pack>`, with the rule catalog, `help.markdown`, `partialFingerprints`, and in-source suppressions; uploaded by the action when permitted.
 3. A job summary with every finding, every suppression and its reason, the files skipped, and the LLM cost.
 4. Annotations for the first 10 errors and 10 warnings.
 
@@ -27,7 +27,7 @@ The exit code depends only on findings and `fail_on`; reporter failures are warn
 
 - **Comments only (Squawk, Atlas).** No history, no fingerprint, nothing on fork PRs, and a reviewer on the security side never sees it.
 - **SARIF only.** Invisible to a developer who does not open the code scanning tab; unavailable on private repositories without the license.
-- **A pr-guard dashboard.** Needs a server and accounts; contradicts [ADR 0003](0003-bring-your-own-key.md).
+- **A lurie-guard dashboard.** Needs a server and accounts; contradicts [ADR 0003](0003-bring-your-own-key.md).
 - **`REQUEST_CHANGES` reviews to block merge.** Interferes with the team's review rules and cannot be resolved by a bot cleanly; the exit code with branch protection is the documented way to block.
 
 ## Consequences

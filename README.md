@@ -1,4 +1,4 @@
-# pr-guard
+# lurie-guard
 
 **English** | [Português](README.pt-BR.md)
 
@@ -8,13 +8,13 @@
 
 Most database incidents start with a migration that looked fine in review: a `CREATE INDEX` that holds a `SHARE` lock on the orders table for the whole build, an `ALTER TABLE` queued behind a long report while every new query queues behind it, a `SET NOT NULL` that scans a hundred million rows under `ACCESS EXCLUSIVE`. The PostgreSQL manual documents every one of them. The PR gets approved anyway.
 
-pr-guard parses the migrations in a PR with PostgreSQL's own parser, applies deterministic rules, and tells the developer what will happen, what to write instead, and when the rule does not apply. Every rule links to a test in [db-skills](https://github.com/rafapeixer/db-skills) that runs against real PostgreSQL 15 and 18 and shows the lock, the rewrite or the scan it prevents.
+lurie-guard parses the migrations in a PR with PostgreSQL's own parser, applies deterministic rules, and tells the developer what will happen, what to write instead, and when the rule does not apply. Every rule links to a test in [db-skills](https://github.com/rafapeixer/db-skills) that runs against real PostgreSQL 15 and 18 and shows the lock, the rewrite or the scan it prevents.
 
 ## What it will do
 
 ```yaml
-# .github/workflows/pr-guard.yml
-name: pr-guard
+# .github/workflows/lurie-guard.yml
+name: lurie-guard
 on:
   pull_request:
 permissions:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7          # pin to a commit SHA in your repository
-      - uses: rafapeixer/pr-guard@v1       # pin to a commit SHA in your repository
+      - uses: lurielabs/lurie-guard@v1       # pin to a commit SHA in your repository
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: plain-words explanations with your own key
 ```
@@ -34,8 +34,8 @@ jobs:
 - **Review comments** on the exact line, with a suggested change when the fix is one statement.
 - **SARIF** uploaded to GitHub code scanning, with stable fingerprints and the rule's documentation.
 - **A job summary** with every finding, every suppression and its reason.
-- **Block merge** on errors (`fail_on: error`), configurable per rule in `.pr-guard.yml`, read from the base branch so a PR cannot turn its own checks off.
-- **Inline suppression with a reason**: `-- pr-guard: ignore PG001 reason="orders is new in this release"`.
+- **Block merge** on errors (`fail_on: error`), configurable per rule in `.lurie-guard.yml`, read from the base branch so a PR cannot turn its own checks off.
+- **Inline suppression with a reason**: `-- lurie-guard: ignore PG001 reason="orders is new in this release"`.
 - **No server, no telemetry.** Code never leaves the runner. With your own Anthropic key, the optional explanation runs inside your runner under your API terms.
 
 ## Rules (PostgreSQL pack, MVP)
@@ -70,7 +70,7 @@ The full detection logic, messages, exemptions and fixtures are in [docs/SPEC-MV
 
 ## Honest comparison
 
-[Squawk](https://github.com/sbdchd/squawk) already lints PostgreSQL migration SQL with 78 rules, is free, actively maintained, and covers most of the list above. If you want a SQL-file linter with a PR comment today, use it. pr-guard differs on evidence per rule, framework-aware transaction detection (Flyway, Rails, Django, Prisma), SARIF and suggested changes, the optional explanation layer, and the packs that come next (MySQL, Java, Go) from the sister repositories. The full comparison, including Atlas, Eugene, strong_migrations and the AI reviewers, is in [docs/COMPETITION.md](docs/COMPETITION.md).
+[Squawk](https://github.com/sbdchd/squawk) already lints PostgreSQL migration SQL with 78 rules, is free, actively maintained, and covers most of the list above. If you want a SQL-file linter with a PR comment today, use it. lurie-guard differs on evidence per rule, framework-aware transaction detection (Flyway, Rails, Django, Prisma), SARIF and suggested changes, the optional explanation layer, and the packs that come next (MySQL, Java, Go) from the sister repositories. The full comparison, including Atlas, Eugene, strong_migrations and the AI reviewers, is in [docs/COMPETITION.md](docs/COMPETITION.md).
 
 ## Documents
 
@@ -81,7 +81,7 @@ The full detection logic, messages, exemptions and fixtures are in [docs/SPEC-MV
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, runtime, data flow, security model, how packs plug in |
 | [docs/RULES.md](docs/RULES.md) | The rule authoring standard: fixtures, evidence, severity, false positives |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phases with exit criteria, pilots, packs, the language-skills plan |
-| [docs/COMPETITION.md](docs/COMPETITION.md) | What exists and where pr-guard does and does not compete |
+| [docs/COMPETITION.md](docs/COMPETITION.md) | What exists and where lurie-guard does and does not compete |
 | [docs/adr/](docs/adr/) | One decision record per key decision |
 | [CLAUDE.md](CLAUDE.md) | How agents and contributors work in this repository |
 

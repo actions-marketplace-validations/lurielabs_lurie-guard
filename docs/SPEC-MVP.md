@@ -5,8 +5,8 @@ Status: design, 2026-10-19. The MVP is the PostgreSQL migration pack, determinis
 ## User stories
 
 1. As a developer, I open a PR that adds a migration file. Within the time my other checks take, I see a review comment on the exact line of the `CREATE INDEX` that would lock the table, saying what happens in production, the fix, and the exception. I did not configure anything beyond adding the action to a workflow.
-2. As a platform engineer, I add pr-guard to the organization's workflow template. Errors block the merge; warnings do not. I can suppress a finding with a reason in the SQL, and the reason is visible in the review.
-3. As a security engineer, I see pr-guard's findings in the repository's code scanning tab, with the rule's documentation and a stable fingerprint, so a finding that moves lines is not a new alert.
+2. As a platform engineer, I add lurie-guard to the organization's workflow template. Errors block the merge; warnings do not. I can suppress a finding with a reason in the SQL, and the reason is visible in the review.
+3. As a security engineer, I see lurie-guard's findings in the repository's code scanning tab, with the rule's documentation and a stable fingerprint, so a finding that moves lines is not a new alert.
 4. As a team lead, I open the job summary and see every finding of the PR in one table, grouped by file, with counts by severity and a link to the rule.
 5. As a developer using a coding agent, the agent reads the review comment, applies the fix, and the next run is clean. The message is specific enough that an agent can act on it without reading the rule.
 
@@ -88,7 +88,7 @@ Each rule's exact message is in its `RULE.md`. The shape, with PG001 as the exam
 
 The fix suggestion is a GitHub suggested change (a ```` ```suggestion ```` block) when the fix is a single-statement replacement on the same lines (PG001, PG002, PG008, PG009, PG016, PG018 in `CREATE TABLE`); otherwise it is a code block in the comment.
 
-## Configuration: `.pr-guard.yml`
+## Configuration: `.lurie-guard.yml`
 
 Optional, at the repository root. Every key has a default. Unknown keys fail the run with a clear message, so a typo does not silently disable a rule.
 
@@ -129,14 +129,14 @@ llm:                          # only used when the anthropic_api_key input is se
   max_cost_usd_per_run: 0.50
 ```
 
-The config is read from the **base** branch of the PR, not the head, so a PR cannot turn rules off for itself. A PR that changes `.pr-guard.yml` gets a notice in the summary saying the new config applies after merge.
+The config is read from the **base** branch of the PR, not the head, so a PR cannot turn rules off for itself. A PR that changes `.lurie-guard.yml` gets a notice in the summary saying the new config applies after merge.
 
 ## Suppression
 
 Inline, with a reason, on the statement's line or the line above:
 
 ```sql
--- pr-guard: ignore PG001 reason="orders is created in V12 and still empty in production"
+-- lurie-guard: ignore PG001 reason="orders is created in V12 and still empty in production"
 CREATE INDEX orders_created_at_idx ON orders (created_at);
 ```
 
@@ -144,27 +144,27 @@ CREATE INDEX orders_created_at_idx ON orders (created_at);
 - `ignore PG001,PG004` suppresses several rules; `ignore all` is accepted and reported as a warning so it is visible in review.
 - A suppression that matches no finding is reported as `info` (`PGS02 unused-suppression`), so stale suppressions get cleaned up.
 - Suppressions appear in the job summary under their own heading with the reason, so a reviewer sees them without opening the file.
-- For Rails and Django the comment uses the host language's comment syntax (`# pr-guard: ignore ...`) on the line above the `execute`/`RunSQL` call.
+- For Rails and Django the comment uses the host language's comment syntax (`# lurie-guard: ignore ...`) on the line above the `execute`/`RunSQL` call.
 
 ## Outputs
 
 ### Review comments
 
-One review per run, created with `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` with all inline comments in the `comments` array, so the run makes one content-generating request instead of one per finding (secondary rate limits allow "no more than 80 content-generating requests per minute"; `GITHUB_TOKEN` has 1,000 requests per hour per repository, [rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)). The review `event` is `COMMENT`; pr-guard never requests changes or approves, so it does not interfere with the team's review rules. Each comment uses `line` and `side: RIGHT` ([create a review comment](https://docs.github.com/en/rest/pulls/comments)); a finding on a line outside the diff (possible when the detector reports the table's `CREATE TABLE` in context) goes to the summary only.
+One review per run, created with `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` with all inline comments in the `comments` array, so the run makes one content-generating request instead of one per finding (secondary rate limits allow "no more than 80 content-generating requests per minute"; `GITHUB_TOKEN` has 1,000 requests per hour per repository, [rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)). The review `event` is `COMMENT`; lurie-guard never requests changes or approves, so it does not interfere with the team's review rules. Each comment uses `line` and `side: RIGHT` ([create a review comment](https://docs.github.com/en/rest/pulls/comments)); a finding on a line outside the diff (possible when the detector reports the table's `CREATE TABLE` in context) goes to the summary only.
 
-Idempotence: the action records the finding fingerprints it posted in a hidden HTML comment in the review body (`<!-- pr-guard:fingerprints ... -->`) and, on the next run, posts only new findings and resolves (replies to) the ones that disappeared. A clean run on a PR that had findings posts one comment: "All pr-guard findings resolved."
+Idempotence: the action records the finding fingerprints it posted in a hidden HTML comment in the review body (`<!-- lurie-guard:fingerprints ... -->`) and, on the next run, posts only new findings and resolves (replies to) the ones that disappeared. A clean run on a PR that had findings posts one comment: "All lurie-guard findings resolved."
 
 ### SARIF
 
 One SARIF 2.1.0 file ("Code scanning only supports SARIF version 2.1.0", [SARIF support](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning)) written to the path in the `sarif_file` output and uploaded by the action itself when `security-events: write` is granted (the action calls the code scanning upload endpoint directly so the workflow does not need a second step; the workflow can instead pass the file to `github/codeql-action/upload-sarif`). Properties:
 
-- `tool.driver.name: pr-guard`, `semanticVersion` from the release, `informationUri` the repository.
+- `tool.driver.name: lurie-guard`, `semanticVersion` from the release, `informationUri` the repository.
 - One `rules[]` entry per rule with `id`, `shortDescription`, `fullDescription`, `help.markdown` (the RULE.md sections 1 to 4; GitHub displays `help.markdown` when present), `helpUri` to the rule's page, `defaultConfiguration.level` (`error`/`warning`/`note`), and `properties.security-severity` left unset (these are not security findings; the scale is for CVSS-style scores).
 - One `results[]` entry per finding with `ruleId`, `level`, `message.text`, one `locations[]` entry with the file and the statement's line range, and `partialFingerprints.primaryLocationLineHash` computed as GitHub documents so a finding that moves lines stays one alert.
 - Suppressed findings are included with `suppressions[]` (`kind: inSource`, `justification` = the reason), so code scanning shows them as dismissed, not missing.
 - Limits respected: at most 25,000 results per run and 10 MB compressed; the action truncates with a notice long before that.
 
-`category` is `pr-guard/pg` so other SARIF uploads in the same workflow are not overwritten. On private repositories, code scanning needs a GitHub Code Security license; when the upload is refused the action prints the reason once and continues.
+`category` is `lurie-guard/pg` so other SARIF uploads in the same workflow are not overwritten. On private repositories, code scanning needs a GitHub Code Security license; when the upload is refused the action prints the reason once and continues.
 
 ### Job summary
 
