@@ -10,4 +10,4 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DROP INDEX CONCURRENTLY orders_created_at_idx")  # expect: PG003
+    op.execute("DROP INDEX CONCURRENTLY orders_created_at_idx")  # downgrade() is not analyzed by default (ADR 0013)

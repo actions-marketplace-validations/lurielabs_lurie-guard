@@ -51,7 +51,7 @@ jobs:
 | Parser | O próprio parser do PostgreSQL (`libpg_query` 18, WebAssembly), instruções posicionadas no arquivo de origem; um arquivo que não parseia gera um achado `info` e a execução continua |
 | Regras | As 21 regras abaixo, cada uma com fixtures `bad`/`good`, um link de evidência para o db-skills em um commit fixo e (para regras `error`) um teste de custo que roda em PostgreSQL 15 e 18 |
 | Exceção de "tabela existente" | Uma tabela criada por `CREATE TABLE` em qualquer arquivo de migration adicionado no PR é nova; as regras PG001 a PG015 a ignoram |
-| Frameworks | Transação por framework (tabela abaixo), `.conf` do Flyway, `runInTransaction` do Liquibase, `disable_ddl_transaction!` do Rails, `atomic = False` do Django, `autocommit_block()` do Alembic, `transaction:false` do dbmate |
+| Frameworks | Transação por framework (tabela abaixo, goose incluído), `.conf` do Flyway, `runInTransaction` do Liquibase, `disable_ddl_transaction!` do Rails, `atomic = False` do Django, `autocommit_block()` do Alembic, `transaction:false` do dbmate |
 | Linguagens hospedeiras | SQL bruto de `execute` (Rails), `RunSQL` (Django), `op.execute` (Alembic); os helpers do Rails `add_index`, `add_column`, `add_foreign_key`, `change_column_null`, `change_column` (mais `create_table`, `drop_table`, `remove_column`, `rename_column`, `rename_table`) mapeados para SQL; todo o resto listado como "não analisado" |
 | Configuração | `.lurie-guard.yml` lido do branch base; chaves, ids de regra ou severidades desconhecidas falham a execução nomeando a chave |
 | Saídas | Uma revisão por execução com sugestões de alteração e fingerprints idempotentes; SARIF 2.1.0 validado contra o schema, com `partialFingerprints` e supressões in-source, enviado pela action quando se opta por isso (ADR 0011); resumo do job; anotações; outputs e código de saída |
@@ -71,11 +71,12 @@ jobs:
 | Django | `**/migrations/[0-9]*.py` | Sim | `atomic = False` | Strings e listas de `RunSQL` |
 | Alembic | `**/versions/*.py` | Sim | `autocommit_block()`, um `COMMIT` explícito | Strings e `text()` de `op.execute` |
 | Prisma | `prisma/migrations/*/migration.sql` | Sim, sem opt-out | - | Todo |
-| golang-migrate | `**/*.up.sql`, `**/*.down.sql` | Não | - | Todo |
+| golang-migrate | `**/*.up.sql` (`*.down.sql` com `analyze_down`) | Não | - | Todo |
 | dbmate | `db/migrations/*.sql` com `-- migrate:up` | Sim | `-- migrate:up transaction:false` | Todo |
 | Sqitch | `deploy/*.sql` | Sim | - | Todo |
+| goose | qualquer `*.sql` com `-- +goose Up` | Sim | `-- +goose NO TRANSACTION` no topo | A seção Up |
 
-Saída de build, dependências e VCS é ignorada por padrão (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), então uma migration do Flyway copiada para `target/classes/` não é relatada duas vezes; `exclude` estende essa lista e `default_excludes: false` a desliga. `paths`, `exclude`, `framework` e `transaction` no `.lurie-guard.yml` sobrescrevem todos os padrões. `datetime` do Rails mapeia para `timestamp(6)`, o padrão do framework; uma aplicação que define `datetime_type = :timestamptz` desliga a PG019.
+Saída de build, dependências e VCS é ignorada por padrão (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), então uma migration do Flyway copiada para `target/classes/` não é relatada duas vezes; `exclude` estende essa lista e `default_excludes: false` a desliga. Seções de rollback (`Down` do goose, `migrate:down` do dbmate, `*.down.sql`, `def down` do Rails, `downgrade()` do Alembic) não são analisadas por padrão, porque um rollback reverte a migration e seus drops são por natureza; `analyze_down: true` as liga ([ADR 0013](docs/adr/0013-goose-and-rollback-sections.md)). `paths`, `exclude`, `framework` e `transaction` no `.lurie-guard.yml` sobrescrevem todos os padrões. `datetime` do Rails mapeia para `timestamp(6)`, o padrão do framework; uma aplicação que define `datetime_type = :timestamptz` desliga a PG019.
 
 ### Rode localmente
 

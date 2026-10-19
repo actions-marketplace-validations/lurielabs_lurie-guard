@@ -63,7 +63,8 @@ function sqlArgument(call: Node, keyword: string): Node | undefined {
   return positional;
 }
 
-export async function extractPython(content: string, framework: 'django' | 'alembic'): Promise<HostExtraction> {
+/** `analyzeDown`: also extract from Alembic's `downgrade()`, off by default (ADR 0013). */
+export async function extractPython(content: string, framework: 'django' | 'alembic', analyzeDown = true): Promise<HostExtraction> {
   const parser = await hostParser('python');
   const tree = parser.parse(content);
   const out: HostExtraction = { segments: [], notAnalyzed: [], comments: [], transactionOptOut: false };
@@ -93,6 +94,7 @@ export async function extractPython(content: string, framework: 'django' | 'alem
       out.comments.push({ line: n.startPosition.row + 1, text: n.text.replace(/^#/, '') });
       return;
     }
+    if (n.type === 'function_definition' && framework === 'alembic' && !analyzeDown && n.childForFieldName('name')?.text === 'downgrade') return;
     if (n.type === 'assignment' && framework === 'django') {
       const left = n.childForFieldName('left');
       const right = n.childForFieldName('right');

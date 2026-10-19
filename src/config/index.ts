@@ -22,6 +22,7 @@ const FRAMEWORKS: Framework[] = [
   'golang-migrate',
   'dbmate',
   'sqitch',
+  'goose',
 ];
 const SEVERITIES: Severity[] = ['error', 'warning', 'info'];
 
@@ -31,6 +32,7 @@ const TOP_KEYS = new Set([
   'paths',
   'exclude',
   'default_excludes',
+  'analyze_down',
   'framework',
   'transaction',
   'lock_timeout_set_by_runner',
@@ -79,6 +81,7 @@ export function defaultConfig(catalog: RuleCatalogEntry[]): ResolvedConfig {
     postgresVersion: 15,
     exclude: [],
     defaultExcludes: true,
+    analyzeDown: false,
     framework: 'auto',
     transaction: 'auto',
     lockTimeoutSetByRunner: false,
@@ -117,6 +120,7 @@ export function parseConfig(text: string | undefined, catalog: RuleCatalogEntry[
   if ('paths' in doc) config.paths = expectStringList(doc.paths, 'paths');
   if ('exclude' in doc) config.exclude = expectStringList(doc.exclude, 'exclude');
   if ('default_excludes' in doc) config.defaultExcludes = expectBoolean(doc.default_excludes, 'default_excludes');
+  if ('analyze_down' in doc) config.analyzeDown = expectBoolean(doc.analyze_down, 'analyze_down');
   if ('framework' in doc) config.framework = expectOneOf(doc.framework, 'framework', ['auto', ...FRAMEWORKS] as const);
   if ('transaction' in doc) config.transaction = expectOneOf(doc.transaction, 'transaction', ['auto', 'always', 'never'] as const);
   if ('lock_timeout_set_by_runner' in doc)

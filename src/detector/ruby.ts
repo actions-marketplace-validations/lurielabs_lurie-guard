@@ -445,7 +445,8 @@ function literalText(v: Value): string {
   return v.t === 'unknown' ? v.text : v.t === 'symbol' ? `:${v.v}` : v.t === 'string' ? `"${v.v}"` : JSON.stringify('v' in v ? v.v : null);
 }
 
-export async function extractRuby(content: string): Promise<HostExtraction> {
+/** `analyzeDown`: also extract from `def down` (the reversal of `up`), off by default (ADR 0013). */
+export async function extractRuby(content: string, analyzeDown = true): Promise<HostExtraction> {
   const parser = await hostParser('ruby');
   const tree = parser.parse(content);
   const out: HostExtraction = { segments: [], notAnalyzed: [], comments: [], transactionOptOut: false };
@@ -455,6 +456,7 @@ export async function extractRuby(content: string): Promise<HostExtraction> {
       out.comments.push({ line: n.startPosition.row + 1, text: n.text.replace(/^#/, '') });
       return;
     }
+    if (n.type === 'method' && !analyzeDown && n.childForFieldName('name')?.text === 'down') return;
     if (n.type === 'call' || n.type === 'identifier') {
       const method = n.type === 'call' ? n.childForFieldName('method') : n;
       const receiver = n.type === 'call' ? n.childForFieldName('receiver') : null;

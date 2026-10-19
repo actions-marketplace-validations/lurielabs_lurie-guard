@@ -1,4 +1,4 @@
-import { alterCmds, qualifiedName } from '../../../src/parser/ast.js';
+import { alterCmds, hasOption, qualifiedName, relName } from '../../../src/parser/ast.js';
 import type { Rule, Statement, RuleContext } from '../../../src/types.js';
 
 /** The statement's form and table when it takes a heavy lock on an existing table. */
@@ -36,6 +36,39 @@ function heavyLock(stmt: Statement, ctx: RuleContext): { form: string; table: st
     case 'ClusterStmt': {
       if (!s.relation || ctx.isNewTable(s.relation)) return undefined;
       return { form: 'CLUSTER', table: ctx.tableName(s.relation) };
+    }
+    case 'RenameStmt': {
+      // ALTER TABLE ... RENAME COLUMN / RENAME TO: ACCESS EXCLUSIVE like every ALTER TABLE form.
+      const table = s.renameType === 'OBJECT_TABLE' || (s.renameType === 'OBJECT_COLUMN' && (!s.relationType || s.relationType === 'OBJECT_TABLE'));
+      if (!table || !s.relation || ctx.isNewTable(s.relation)) return undefined;
+      return { form: s.renameType === 'OBJECT_TABLE' ? 'ALTER TABLE ... RENAME TO' : 'ALTER TABLE ... RENAME COLUMN', table: ctx.tableName(s.relation) };
+    }
+    case 'VacuumStmt': {
+      if (!s.is_vacuumcmd || !hasOption(s.options, 'full')) return undefined;
+      const rels = (s.rels ?? []).map((r: { VacuumRelation?: { relation?: unknown } }) => r?.VacuumRelation?.relation).filter(Boolean);
+      const existing = rels.filter((r: unknown) => !ctx.isNewTable(r));
+      if (rels.length > 0 && existing.length === 0) return undefined;
+      return { form: 'VACUUM FULL', table: rels.length ? ctx.tableName(existing[0]) : 'every table' };
+    }
+    case 'ReindexStmt': {
+      if (hasOption(s.params, 'concurrently')) return undefined;
+      const rv = relName(s.relation);
+      if (!rv) return undefined;
+      if (s.kind === 'REINDEX_OBJECT_INDEX' && ctx.isNewIndex(rv.name)) return undefined;
+      if (s.kind === 'REINDEX_OBJECT_TABLE' && ctx.isNewTable(s.relation)) return undefined;
+      return { form: 'REINDEX', table: s.kind === 'REINDEX_OBJECT_INDEX' ? `the table of ${rv.display}` : rv.display };
+    }
+    case 'RefreshMatViewStmt': {
+      if (s.concurrent || !s.relation || ctx.isNewTable(s.relation)) return undefined;
+      return { form: 'REFRESH MATERIALIZED VIEW', table: ctx.tableName(s.relation) };
+    }
+    case 'LockStmt': {
+      // LOCK TABLE defaults to ACCESS EXCLUSIVE; modes 6 (SHARE ROW EXCLUSIVE) and above are the heavy ones.
+      if (typeof s.mode === 'number' && s.mode < 6) return undefined;
+      const rels = (s.relations ?? []).map((r: { RangeVar?: unknown }) => r?.RangeVar).filter(Boolean);
+      const existing = rels.filter((r: unknown) => !ctx.isNewTable(r));
+      if (existing.length === 0) return undefined;
+      return { form: 'LOCK TABLE', table: ctx.tableName(existing[0]) };
     }
     default:
       return undefined;

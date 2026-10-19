@@ -51,7 +51,7 @@ jobs:
 | Parser | PostgreSQL's own parser (`libpg_query` 18, WebAssembly), statements positioned in the host file; a file that does not parse gives one `info` finding and the run continues |
 | Rules | The 21 rules below, each with `bad`/`good` fixtures, an evidence link into db-skills at a pinned commit, and (for `error` rules) a cost test that runs on PostgreSQL 15 and 18 |
 | "Existing table" exemption | A table created by `CREATE TABLE` in any added migration file of the PR is new; rules PG001 to PG015 skip it |
-| Frameworks | Transaction wrapper per framework (table below), Flyway `.conf`, Liquibase `runInTransaction`, Rails `disable_ddl_transaction!`, Django `atomic = False`, Alembic `autocommit_block()`, dbmate `transaction:false` |
+| Frameworks | Transaction wrapper per framework (table below, goose included), Flyway `.conf`, Liquibase `runInTransaction`, Rails `disable_ddl_transaction!`, Django `atomic = False`, Alembic `autocommit_block()`, dbmate `transaction:false` |
 | Host languages | Raw SQL from Rails `execute`, Django `RunSQL`, Alembic `op.execute`; the Rails helpers `add_index`, `add_column`, `add_foreign_key`, `change_column_null`, `change_column` (plus `create_table`, `drop_table`, `remove_column`, `rename_column`, `rename_table`) mapped to SQL; anything else listed as "not analyzed" |
 | Config | `.lurie-guard.yml` read from the base branch; unknown keys, rule ids or severities fail the run naming the key |
 | Outputs | One review per run with suggested changes and idempotent fingerprints; SARIF 2.1.0 validated against the schema, with `partialFingerprints` and in-source suppressions, uploaded by the action when opted in (ADR 0011); job summary; annotations; outputs and exit code |
@@ -71,11 +71,12 @@ jobs:
 | Django | `**/migrations/[0-9]*.py` | Yes | `atomic = False` | `RunSQL` strings and lists |
 | Alembic | `**/versions/*.py` | Yes | `autocommit_block()`, an explicit `COMMIT` | `op.execute` strings and `text()` |
 | Prisma | `prisma/migrations/*/migration.sql` | Yes, no opt-out | - | All |
-| golang-migrate | `**/*.up.sql`, `**/*.down.sql` | No | - | All |
+| golang-migrate | `**/*.up.sql` (`*.down.sql` with `analyze_down`) | No | - | All |
 | dbmate | `db/migrations/*.sql` with `-- migrate:up` | Yes | `-- migrate:up transaction:false` | All |
 | Sqitch | `deploy/*.sql` | Yes | - | All |
+| goose | any `*.sql` with `-- +goose Up` | Yes | `-- +goose NO TRANSACTION` at the top | The Up section |
 
-Build, dependency and VCS output is skipped by default (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), so a Flyway migration copied to `target/classes/` is not reported twice; `exclude` extends that list and `default_excludes: false` turns it off. `paths`, `exclude`, `framework` and `transaction` in `.lurie-guard.yml` override every built-in. Rails `datetime` maps to `timestamp(6)`, the framework default; an application that sets `datetime_type = :timestamptz` turns PG019 off.
+Build, dependency and VCS output is skipped by default (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), so a Flyway migration copied to `target/classes/` is not reported twice; `exclude` extends that list and `default_excludes: false` turns it off. Rollback sections (goose `Down`, dbmate `migrate:down`, `*.down.sql`, Rails `def down`, Alembic `downgrade()`) are not analyzed by default, because a rollback reverses the migration and its drops are by nature; `analyze_down: true` turns them on ([ADR 0013](docs/adr/0013-goose-and-rollback-sections.md)). `paths`, `exclude`, `framework` and `transaction` in `.lurie-guard.yml` override every built-in. Rails `datetime` maps to `timestamp(6)`, the framework default; an application that sets `datetime_type = :timestamptz` turns PG019 off.
 
 ### Run it locally
 

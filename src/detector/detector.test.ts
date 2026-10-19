@@ -15,6 +15,8 @@ describe('framework classification', () => {
     ['db/migrations/20261019_x.sql', '', 'sql', false],
     ['sql/migrations/a/b.sql', '', 'sql', false],
     ['db/migrations/20261019_x.sql', '-- migrate:up\nSELECT 1;\n', 'dbmate', true],
+    ['skills/x/examples/bad/migrations/00003_index.sql', '-- +goose Up\nSELECT 1;\n', 'goose', true],
+    ['any/folder/20170506082420_add_some_column.sql', '-- +goose NO TRANSACTION\n-- +goose Up\nSELECT 1;\n', 'goose', true],
     ['src/main/resources/db/migration/V1__init.sql', '', 'flyway', true],
     ['db/migration/R__views.sql', '', 'flyway', true],
     ['src/changelog/002.sql', '--liquibase formatted sql\n--changeset a:1\n', 'liquibase', true],
@@ -24,7 +26,7 @@ describe('framework classification', () => {
     ['alembic/versions/0002_index.py', '', 'alembic', true],
     ['prisma/migrations/20261019_x/migration.sql', '', 'prisma', true],
     ['db/000002_x.up.sql', '', 'golang-migrate', false],
-    ['db/000002_x.down.sql', '', 'golang-migrate', false],
+    ['db/000002_x.down.sql', '', undefined, undefined],
     ['deploy/orders.sql', '', 'sqitch', true],
     ['src/queries/report.sql', '', undefined, undefined],
     ['services/billing/migrations/001_init.sql', '', 'sql', false],
@@ -89,10 +91,8 @@ describe('transaction wrappers', () => {
     expect(by.get('db/migration/V3__b.sql')?.wrapped).toBe(false);
     const dbmate = by.get('db/migrations/1_x.sql');
     expect(dbmate?.framework).toBe('dbmate');
-    expect(dbmate?.segments.map((s) => [s.line, s.transactionOptOut ?? false])).toEqual([
-      [1, true],
-      [3, false],
-    ]);
+    // The migrate:down section is skipped by default (ADR 0013); the up section keeps its opt-out.
+    expect(dbmate?.segments.map((s) => [s.line, s.transactionOptOut ?? false])).toEqual([[1, true]]);
     const lb = by.get('changelog/1.sql');
     expect(lb?.segments.map((s) => [s.line, s.transactionOptOut ?? false])).toEqual([
       [1, false],
@@ -102,6 +102,66 @@ describe('transaction wrappers', () => {
     c.transaction = 'never';
     const never = await detectMigrations(files.slice(0, 1), { config: c });
     expect(never[0].wrapped).toBe(false);
+  });
+});
+
+describe('rollback sections (ADR 0013)', () => {
+  const GOOSE = `-- +goose NO TRANSACTION
+-- +goose Up
+-- +goose StatementBegin
+CREATE FUNCTION bump() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.hits := NEW.hits + 1;
+  RETURN NEW;
+END;
+$$;
+-- +goose StatementEnd
+CREATE INDEX CONCURRENTLY a ON orders (a);
+
+-- +goose Down
+DROP INDEX CONCURRENTLY a;
+DROP FUNCTION bump();
+`;
+
+  it('goose: the Up section only by default, Down with analyze_down, NO TRANSACTION opts out, StatementBegin/End parse', async () => {
+    const c = config();
+    const [m] = await detectMigrations([{ path: 'migrations/00005_bump.sql', status: 'added', content: GOOSE }], { config: c });
+    expect(m.framework).toBe('goose');
+    expect(m.wrapped).toBe(false);
+    expect(m.segments.map((s) => s.line)).toEqual([1]);
+    expect(m.segments[0].sql).not.toContain('DROP INDEX');
+    c.analyzeDown = true;
+    const [withDown] = await detectMigrations([{ path: 'migrations/00005_bump.sql', status: 'added', content: GOOSE }], { config: c });
+    expect(withDown.segments.map((s) => s.line)).toEqual([1, 13]);
+    expect(withDown.segments[1].sql).toContain('DROP INDEX CONCURRENTLY a;');
+    const [wrapped] = await detectMigrations([{ path: 'migrations/1.sql', status: 'added', content: '-- +goose Up\nSELECT 1;\n' }], { config: config() });
+    expect(wrapped.wrapped).toBe(true);
+  });
+
+  it('dbmate: the migrate:down section only with analyze_down', async () => {
+    const content = '-- migrate:up\nSELECT 1;\n-- migrate:down\nSELECT 2;\n';
+    const c = config();
+    const [m] = await detectMigrations([{ path: 'db/migrations/1.sql', status: 'added', content }], { config: c });
+    expect(m.segments.map((s) => s.line)).toEqual([1]);
+    c.analyzeDown = true;
+    const [both] = await detectMigrations([{ path: 'db/migrations/1.sql', status: 'added', content }], { config: c });
+    expect(both.segments.map((s) => s.line)).toEqual([1, 3]);
+  });
+
+  it('golang-migrate: *.down.sql only with analyze_down', () => {
+    const c = config();
+    expect(classify('db/000002_x.down.sql', '', c)).toBeUndefined();
+    c.analyzeDown = true;
+    expect(classify('db/000002_x.down.sql', '', c)?.name).toBe('golang-migrate');
+  });
+
+  it('Rails def down and Alembic downgrade() are skipped unless analyze_down', async () => {
+    const rb = `class M < ActiveRecord::Migration[7.1]\n  def up\n    add_column :orders, :a, :text\n  end\n\n  def down\n    remove_column :orders, :a\n  end\nend\n`;
+    expect((await extractRuby(rb, false)).segments.map((s) => s.sql)).toEqual(['ALTER TABLE orders ADD COLUMN a text']);
+    expect((await extractRuby(rb, true)).segments.map((s) => s.sql)).toEqual(['ALTER TABLE orders ADD COLUMN a text', 'ALTER TABLE orders DROP COLUMN a']);
+    const py = `from alembic import op\n\n\ndef upgrade():\n    op.execute("ALTER TABLE orders ADD COLUMN a text")\n\n\ndef downgrade():\n    op.execute("ALTER TABLE orders DROP COLUMN a")\n`;
+    expect((await extractPython(py, 'alembic', false)).segments.map((s) => s.sql)).toEqual(['ALTER TABLE orders ADD COLUMN a text']);
+    expect((await extractPython(py, 'alembic', true)).segments.map((s) => s.sql)).toEqual(['ALTER TABLE orders ADD COLUMN a text', 'ALTER TABLE orders DROP COLUMN a']);
   });
 });
 

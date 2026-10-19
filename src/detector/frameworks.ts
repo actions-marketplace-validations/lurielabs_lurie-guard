@@ -14,8 +14,19 @@ export interface FrameworkDef {
 
 export const LIQUIBASE_HEADER = /^\s*--\s*liquibase\s+formatted\s+sql/im;
 export const DBMATE_UP = /^\s*--\s*migrate:up\b/im;
+/** goose: "Each migration file must have exactly one `-- +goose Up` annotation" (pressly/goose README). */
+export const GOOSE_UP = /^\s*--\s*\+goose\s+Up\b/im;
+export const GOOSE_DOWN = /^\s*--\s*\+goose\s+Down\b/i;
+export const GOOSE_NO_TRANSACTION = /^\s*--\s*\+goose\s+NO\s+TRANSACTION\b/im;
 
 export const FRAMEWORKS: FrameworkDef[] = [
+  {
+    name: 'goose',
+    globs: ['**/*.sql'],
+    wrapped: true,
+    wrapReason: 'goose runs each migration in a transaction unless the file says -- +goose NO TRANSACTION',
+    marker: (c) => GOOSE_UP.test(c),
+  },
   {
     name: 'liquibase',
     globs: ['**/changelog/**/*.sql'],
@@ -131,6 +142,8 @@ export function classify(path: string, content: string, config: ResolvedConfig):
   const normalized = path.replace(/\\/g, '/').replace(/^\.\//, '');
   const excludes = [...(config.defaultExcludes ? DEFAULT_EXCLUDES : []), ...config.exclude];
   if (excludes.length && picomatch(excludes, { dot: true })(normalized)) return undefined;
+  // golang-migrate's rollback file: the reversal of the .up.sql, analyzed only on request (ADR 0013).
+  if (!config.analyzeDown && /.down.sql$/i.test(normalized)) return undefined;
   const byContent = FRAMEWORKS.find((f) => f.marker && matcherFor(f)(normalized) && f.marker(content));
   const byPath = FRAMEWORKS.find((f) => !f.marker && matcherFor(f)(normalized));
   const detected = byContent ?? byPath;

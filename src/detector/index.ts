@@ -1,7 +1,7 @@
 // The migration detector: which files are migrations, under which framework,
 // whether the framework wraps them in a transaction, and the SQL in each.
 import type { FileStatus, MigrationFile, ResolvedConfig, SqlSegment } from '../types.js';
-import { classify, DBMATE_UP, type FrameworkDef } from './frameworks.js';
+import { classify, DBMATE_UP, GOOSE_DOWN, GOOSE_NO_TRANSACTION, type FrameworkDef } from './frameworks.js';
 import { extractPython } from './python.js';
 import { extractRuby } from './ruby.js';
 
@@ -43,15 +43,17 @@ function liquibaseSegments(content: string): SqlSegment[] {
   return segments;
 }
 
-function dbmateSegments(content: string): { segments: SqlSegment[]; anyOptOut: boolean } {
+function dbmateSegments(content: string, analyzeDown: boolean): { segments: SqlSegment[]; anyOptOut: boolean } {
   const lines = content.split('\n');
   const segments: SqlSegment[] = [];
   let current: string[] = [];
   let currentLine = 1;
   let optOut = false;
   let anyOptOut = false;
+  let down = false;
   const flush = (): void => {
-    if (current.length) segments.push({ sql: current.join('\n'), line: currentLine, transactionOptOut: optOut || undefined });
+    // The migrate:down section is the reversal of the up: analyzed only on request (ADR 0013).
+    if (current.length && (analyzeDown || !down)) segments.push({ sql: current.join('\n'), line: currentLine, transactionOptOut: optOut || undefined });
   };
   lines.forEach((text, i) => {
     const m = DBMATE_SECTION.exec(text);
@@ -59,6 +61,7 @@ function dbmateSegments(content: string): { segments: SqlSegment[]; anyOptOut: b
       flush();
       current = [];
       currentLine = i + 1;
+      down = m[1].toLowerCase() === 'down';
       optOut = /transaction\s*:\s*false/i.test(m[2]);
       if (optOut) anyOptOut = true;
     }
@@ -66,6 +69,21 @@ function dbmateSegments(content: string): { segments: SqlSegment[]; anyOptOut: b
   });
   flush();
   return { segments, anyOptOut };
+}
+
+/**
+ * goose: the Up section (from the file start to `-- +goose Down`) and, on
+ * request, the Down section. `-- +goose StatementBegin/End` are comments to
+ * the parser. `-- +goose NO TRANSACTION` at the top opts the file out.
+ */
+function gooseSegments(content: string, analyzeDown: boolean): { segments: SqlSegment[]; optOut: boolean } {
+  const lines = content.split('\n');
+  const segments: SqlSegment[] = [];
+  const downAt = lines.findIndex((l) => GOOSE_DOWN.test(l));
+  const upLines = downAt >= 0 ? lines.slice(0, downAt) : lines;
+  segments.push({ sql: upLines.join('\n'), line: 1 });
+  if (analyzeDown && downAt >= 0) segments.push({ sql: lines.slice(downAt).join('\n'), line: downAt + 1 });
+  return { segments, optOut: GOOSE_NO_TRANSACTION.test(content) };
 }
 
 export async function detectMigrations(files: InputFile[], opts: DetectOptions): Promise<MigrationFile[]> {
@@ -92,8 +110,17 @@ async function toMigration(f: InputFile, def: FrameworkDef, opts: DetectOptions)
     notAnalyzed: [],
   };
   switch (def.name) {
+    case 'goose': {
+      const g = gooseSegments(f.content, config.analyzeDown);
+      base.segments = g.segments;
+      if (g.optOut) {
+        base.wrapped = false;
+        base.wrapReason = '-- +goose NO TRANSACTION is set';
+      }
+      break;
+    }
     case 'rails': {
-      const x = await extractRuby(f.content);
+      const x = await extractRuby(f.content, config.analyzeDown);
       base.segments = x.segments;
       base.notAnalyzed = x.notAnalyzed;
       base.comments = x.comments;
@@ -105,7 +132,7 @@ async function toMigration(f: InputFile, def: FrameworkDef, opts: DetectOptions)
     }
     case 'django':
     case 'alembic': {
-      const x = await extractPython(f.content, def.name);
+      const x = await extractPython(f.content, def.name, config.analyzeDown);
       base.segments = x.segments;
       base.notAnalyzed = x.notAnalyzed;
       base.comments = x.comments;
@@ -119,7 +146,7 @@ async function toMigration(f: InputFile, def: FrameworkDef, opts: DetectOptions)
       base.segments = liquibaseSegments(f.content);
       break;
     case 'dbmate': {
-      const d = dbmateSegments(f.content);
+      const d = dbmateSegments(f.content, config.analyzeDown);
       base.segments = d.segments;
       if (d.anyOptOut && d.segments.every((s) => s.transactionOptOut)) {
         base.wrapped = false;

@@ -153,6 +153,8 @@ export function transactionOptOutHint(framework: Framework): string {
       return 'Sqitch runs deploy scripts in a transaction: move the statement to a script your deploy runs outside Sqitch';
     case 'golang-migrate':
       return 'golang-migrate runs statements one by one: remove the explicit BEGIN/COMMIT';
+    case 'goose':
+      return 'goose: add  at the top of the file';
     case 'sql':
       return 'run the file outside a transaction (your runner wraps files: `transaction: always` in `.lurie-guard.yml`)';
   }

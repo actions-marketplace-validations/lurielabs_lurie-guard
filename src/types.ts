@@ -10,7 +10,8 @@ export type Framework =
   | 'prisma'
   | 'golang-migrate'
   | 'dbmate'
-  | 'sqitch';
+  | 'sqitch'
+  | 'goose';
 
 export type FileStatus = 'added' | 'modified';
 
@@ -141,6 +142,8 @@ export interface ResolvedConfig {
   exclude: string[];
   /** Apply the built-in build/dependency/VCS output excludes. */
   defaultExcludes: boolean;
+  /** Analyze rollback sections too (goose Down, dbmate migrate:down, golang-migrate .down.sql, Rails down, Alembic downgrade). */
+  analyzeDown: boolean;
   framework: 'auto' | Framework;
   transaction: 'auto' | 'always' | 'never';
   lockTimeoutSetByRunner: boolean;

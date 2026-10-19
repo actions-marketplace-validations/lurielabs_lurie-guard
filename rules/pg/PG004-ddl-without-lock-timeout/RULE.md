@@ -16,11 +16,11 @@ verified: 2026-10-19
 
 ## What it detects
 
-A statement that takes an `ACCESS EXCLUSIVE` or `SHARE ROW EXCLUSIVE` lock on an existing table (`ALTER TABLE` other than `VALIDATE CONSTRAINT` alone, `DROP TABLE`, `DROP INDEX` without `CONCURRENTLY`, `TRUNCATE`, `CLUSTER`) when no `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (`lock_timeout_set_by_runner: true`).
+A statement that takes an `ACCESS EXCLUSIVE` or `SHARE ROW EXCLUSIVE` lock on an existing table (`ALTER TABLE` other than `VALIDATE CONSTRAINT` alone, including `RENAME COLUMN` and `RENAME TO`; `DROP TABLE`; `DROP INDEX` without `CONCURRENTLY`; `TRUNCATE`; `CLUSTER`; `VACUUM FULL`; `REINDEX` without `CONCURRENTLY`; `REFRESH MATERIALIZED VIEW` without `CONCURRENTLY`; `LOCK TABLE` in `SHARE ROW EXCLUSIVE` mode or above) when no `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (`lock_timeout_set_by_runner: true`).
 
 ## Why it matters
 
-`lock_timeout` defaults to `0`, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's `ACCESS SHARE` lock on `orders` in one session and runs `ALTER TABLE orders ADD COLUMN note text` in another: the `ALTER` queues for its `ACCESS EXCLUSIVE` lock, and a plain `SELECT count(*) FROM orders WHERE id = 1` that arrives next is blocked behind the waiting `ALTER` (it fails with `55P03` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets `lock_timeout = '1s'`: the `ALTER` fails fast with `55P03`, traffic keeps flowing, and the retry after the report commits succeeds at once.
+`lock_timeout` defaults to `0`, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's `ACCESS SHARE` lock on `orders` in one session and runs `ALTER TABLE orders ADD COLUMN note text` in another: the `ALTER` queues for its `ACCESS EXCLUSIVE` lock, and a plain `SELECT count(*) FROM orders WHERE id = 1` that arrives next is blocked behind the waiting `ALTER` (it fails with `55P03` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The statement list follows the manual: "an ACCESS EXCLUSIVE lock is acquired unless explicitly noted" for every `ALTER TABLE` form, renames included ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and `ACCESS EXCLUSIVE` is "acquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands" and by `LOCK TABLE` by default ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). The good example sets `lock_timeout = '1s'`: the `ALTER` fails fast with `55P03`, traffic keeps flowing, and the retry after the report commits succeeds at once.
 
 ## The fix
 
@@ -47,6 +47,7 @@ Inside a transaction, `SET LOCAL lock_timeout` scopes it to that transaction. Co
 
 - `fixtures/bad/no-timeout.sql`: the skill's `ALTER TABLE orders ADD COLUMN note text` with no `lock_timeout`, then `DROP TABLE`, `TRUNCATE` and a plain `DROP INDEX`.
 - `fixtures/bad/timeout-zero.sql`: `SET lock_timeout = 0` does not count.
+- `fixtures/bad/rename-and-rebuilds.sql`: `RENAME COLUMN`, `RENAME TO`, `VACUUM FULL`, `REINDEX`, `REFRESH MATERIALIZED VIEW`, `LOCK TABLE`; a `LOCK TABLE ... IN ACCESS SHARE MODE` is not reported.
 - `fixtures/good/set-lock-timeout.sql`: `SET lock_timeout = '1s'` before the DDL.
 - `fixtures/good/set-local.sql`: `SET LOCAL lock_timeout` inside the transaction.
 - `fixtures/good/runner-sets-it/`: `lock_timeout_set_by_runner: true` in the config.

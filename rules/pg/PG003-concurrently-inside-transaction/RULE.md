@@ -16,7 +16,7 @@ verified: 2026-10-19
 
 ## What it detects
 
-`CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY`, `REINDEX ... CONCURRENTLY` or `REFRESH MATERIALIZED VIEW CONCURRENTLY` inside an explicit `BEGIN` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
+`CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY`, `REINDEX ... CONCURRENTLY` or `REFRESH MATERIALIZED VIEW CONCURRENTLY` inside an explicit `BEGIN` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, goose; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
 
 ## Why it matters
 
@@ -27,6 +27,7 @@ verified: 2026-10-19
 Run the statement outside a transaction. How depends on the framework:
 
 ```text
+goose      -- +goose NO TRANSACTION at the top of the file
 Flyway     <file>.sql.conf with executeInTransaction=false
 Liquibase  --changeset author:id runInTransaction:false
 Rails      disable_ddl_transaction! in the migration class
@@ -39,7 +40,7 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
 
 ## When it does not apply
 
-- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or `transaction: never` in `.lurie-guard.yml`), a Flyway migration with `executeInTransaction=false`, a Rails migration with `disable_ddl_transaction!`, a Django migration with `atomic = False`, an Alembic step in `autocommit_block()`, a dbmate section with `transaction:false`, a Liquibase changeset with `runInTransaction:false`.
+- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or `transaction: never` in `.lurie-guard.yml`), a Flyway migration with `executeInTransaction=false`, a Rails migration with `disable_ddl_transaction!`, a Django migration with `atomic = False`, an Alembic step in `autocommit_block()`, a dbmate section with `transaction:false`, a Liquibase changeset with `runInTransaction:false`, a goose file with `-- +goose NO TRANSACTION`.
 - The statement is outside the explicit `BEGIN` ... `COMMIT` block of the file.
 
 ## Message
@@ -57,6 +58,7 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
 - `fixtures/bad/liquibase/changelog/002_index.sql`: a Liquibase changeset without `runInTransaction:false`.
 - `fixtures/bad/alembic/alembic/versions/0002_index.py`: Alembic `op.execute` outside `autocommit_block()`.
 - `fixtures/bad/sqitch/deploy/index.sql`: Sqitch, wrapped.
+- `fixtures/bad/goose/migrations/00003_index_users_display_name.sql`: goose without `-- +goose NO TRANSACTION` (from go-skills).
 - `fixtures/bad/sql-always/`: a plain SQL folder with `transaction: always` in the config.
 - `fixtures/good/outside-transaction.sql`: the statements after `COMMIT`.
 - `fixtures/good/flyway-opt-out/`: the `.conf` sets `executeInTransaction=false`.
@@ -66,3 +68,5 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
 - `fixtures/good/liquibase-opt-out/`: `runInTransaction:false`.
 - `fixtures/good/alembic-opt-out/`: `autocommit_block()`.
 - `fixtures/good/golang-migrate/`: statement-by-statement runner, not wrapped.
+- `fixtures/good/goose-no-transaction/`: `-- +goose NO TRANSACTION`.
+- `fixtures/good/goose-down-only/`: the only `CONCURRENTLY` is in the Down section, which is not analyzed by default; the Up carries a `StatementBegin/End` function body.

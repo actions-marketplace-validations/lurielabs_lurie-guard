@@ -17,6 +17,7 @@ describe('config', () => {
     expect(c.outputs.maxComments).toBe(25);
     expect(c.outputs.sarif, 'the code scanning upload is opt-in (ADR 0011)').toBe(false);
     expect(c.defaultExcludes).toBe(true);
+    expect(c.analyzeDown).toBe(false);
     expect(c.exclude).toEqual([]);
     expect(c.outputs.reviewComments).toBe(true);
     expect(c.llm.model).toBe('claude-sonnet-5-5');
@@ -37,6 +38,7 @@ paths:
 exclude:
   - db/migrate/seed/**
 default_excludes: false
+analyze_down: true
 framework: flyway
 transaction: never
 lock_timeout_set_by_runner: true
@@ -62,6 +64,7 @@ llm:
     expect(c.postgresVersion).toBe(18);
     expect(c.paths).toEqual(['db/migrate/**/*.sql']);
     expect(c.defaultExcludes).toBe(false);
+    expect(c.analyzeDown).toBe(true);
     expect(c.framework).toBe('flyway');
     expect(c.transaction).toBe('never');
     expect(c.lockTimeoutSetByRunner).toBe(true);

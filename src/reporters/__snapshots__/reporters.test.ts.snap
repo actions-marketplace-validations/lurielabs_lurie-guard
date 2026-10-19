@@ -527,12 +527,12 @@ DROP INDEX CONCURRENTLY "waits until conflicting transactions have completed" in
                 "level": "error",
               },
               "fullDescription": {
-                "text": "\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).",
+                "text": "\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, goose; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).",
               },
               "help": {
                 "markdown": "## What it detects
 
-\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
+\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, goose; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
 
 ## Why it matters
 
@@ -543,6 +543,7 @@ DROP INDEX CONCURRENTLY "waits until conflicting transactions have completed" in
 Run the statement outside a transaction. How depends on the framework:
 
 \`\`\`text
+goose      -- +goose NO TRANSACTION at the top of the file
 Flyway     <file>.sql.conf with executeInTransaction=false
 Liquibase  --changeset author:id runInTransaction:false
 Rails      disable_ddl_transaction! in the migration class
@@ -555,11 +556,11 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
 
 ## When it does not apply
 
-- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or \`transaction: never\` in \`.lurie-guard.yml\`), a Flyway migration with \`executeInTransaction=false\`, a Rails migration with \`disable_ddl_transaction!\`, a Django migration with \`atomic = False\`, an Alembic step in \`autocommit_block()\`, a dbmate section with \`transaction:false\`, a Liquibase changeset with \`runInTransaction:false\`.
+- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or \`transaction: never\` in \`.lurie-guard.yml\`), a Flyway migration with \`executeInTransaction=false\`, a Rails migration with \`disable_ddl_transaction!\`, a Django migration with \`atomic = False\`, an Alembic step in \`autocommit_block()\`, a dbmate section with \`transaction:false\`, a Liquibase changeset with \`runInTransaction:false\`, a goose file with \`-- +goose NO TRANSACTION\`.
 - The statement is outside the explicit \`BEGIN\` ... \`COMMIT\` block of the file.",
                 "text": " What it detects
 
-CREATE INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY, REINDEX ... CONCURRENTLY or REFRESH MATERIALIZED VIEW CONCURRENTLY inside an explicit BEGIN block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
+CREATE INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY, REINDEX ... CONCURRENTLY or REFRESH MATERIALIZED VIEW CONCURRENTLY inside an explicit BEGIN block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, goose; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
 
  Why it matters
 
@@ -570,6 +571,7 @@ CREATE INDEX CONCURRENTLY "cannot" run "within a transaction block" ([CREATE IND
 Run the statement outside a transaction. How depends on the framework:
 
 text
+goose      -- +goose NO TRANSACTION at the top of the file
 Flyway     <file.sql.conf with executeInTransaction=false
 Liquibase  --changeset author:id runInTransaction:false
 Rails      disable_ddl_transaction! in the migration class
@@ -582,7 +584,7 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
 
  When it does not apply
 
-- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or transaction: never in .lurie-guard.yml), a Flyway migration with executeInTransaction=false, a Rails migration with disable_ddl_transaction!, a Django migration with atomic = False, an Alembic step in autocommit_block(), a dbmate section with transaction:false, a Liquibase changeset with runInTransaction:false.
+- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or transaction: never in .lurie-guard.yml), a Flyway migration with executeInTransaction=false, a Rails migration with disable_ddl_transaction!, a Django migration with atomic = False, an Alembic step in autocommit_block(), a dbmate section with transaction:false, a Liquibase changeset with runInTransaction:false, a goose file with -- +goose NO TRANSACTION.
 - The statement is outside the explicit BEGIN ... COMMIT block of the file.",
               },
               "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG003-concurrently-inside-transaction/RULE.md",
@@ -604,16 +606,16 @@ Plain SQL  move it outside the BEGIN ... COMMIT block
                 "level": "warning",
               },
               "fullDescription": {
-                "text": "A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, \`DROP TABLE\`, \`DROP INDEX\` without \`CONCURRENTLY\`, \`TRUNCATE\`, \`CLUSTER\`) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).",
+                "text": "A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, including \`RENAME COLUMN\` and \`RENAME TO\`; \`DROP TABLE\`; \`DROP INDEX\` without \`CONCURRENTLY\`; \`TRUNCATE\`; \`CLUSTER\`; \`VACUUM FULL\`; \`REINDEX\` without \`CONCURRENTLY\`; \`REFRESH MATERIALIZED VIEW\` without \`CONCURRENTLY\`; \`LOCK TABLE\` in \`SHARE ROW EXCLUSIVE\` mode or above) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).",
               },
               "help": {
                 "markdown": "## What it detects
 
-A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, \`DROP TABLE\`, \`DROP INDEX\` without \`CONCURRENTLY\`, \`TRUNCATE\`, \`CLUSTER\`) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).
+A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, including \`RENAME COLUMN\` and \`RENAME TO\`; \`DROP TABLE\`; \`DROP INDEX\` without \`CONCURRENTLY\`; \`TRUNCATE\`; \`CLUSTER\`; \`VACUUM FULL\`; \`REINDEX\` without \`CONCURRENTLY\`; \`REFRESH MATERIALIZED VIEW\` without \`CONCURRENTLY\`; \`LOCK TABLE\` in \`SHARE ROW EXCLUSIVE\` mode or above) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).
 
 ## Why it matters
 
-\`lock_timeout\` defaults to \`0\`, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's \`ACCESS SHARE\` lock on \`orders\` in one session and runs \`ALTER TABLE orders ADD COLUMN note text\` in another: the \`ALTER\` queues for its \`ACCESS EXCLUSIVE\` lock, and a plain \`SELECT count(*) FROM orders WHERE id = 1\` that arrives next is blocked behind the waiting \`ALTER\` (it fails with \`55P03\` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets \`lock_timeout = '1s'\`: the \`ALTER\` fails fast with \`55P03\`, traffic keeps flowing, and the retry after the report commits succeeds at once.
+\`lock_timeout\` defaults to \`0\`, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's \`ACCESS SHARE\` lock on \`orders\` in one session and runs \`ALTER TABLE orders ADD COLUMN note text\` in another: the \`ALTER\` queues for its \`ACCESS EXCLUSIVE\` lock, and a plain \`SELECT count(*) FROM orders WHERE id = 1\` that arrives next is blocked behind the waiting \`ALTER\` (it fails with \`55P03\` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The statement list follows the manual: "an ACCESS EXCLUSIVE lock is acquired unless explicitly noted" for every \`ALTER TABLE\` form, renames included ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and \`ACCESS EXCLUSIVE\` is "acquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands" and by \`LOCK TABLE\` by default ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). The good example sets \`lock_timeout = '1s'\`: the \`ALTER\` fails fast with \`55P03\`, traffic keeps flowing, and the retry after the report commits succeeds at once.
 
 ## The fix
 
@@ -633,11 +635,11 @@ Inside a transaction, \`SET LOCAL lock_timeout\` scopes it to that transaction. 
 - An \`ALTER TABLE\` whose only subcommand is \`VALIDATE CONSTRAINT\` takes \`SHARE UPDATE EXCLUSIVE\`, which does not block reads or writes.",
                 "text": " What it detects
 
-A statement that takes an ACCESS EXCLUSIVE or SHARE ROW EXCLUSIVE lock on an existing table (ALTER TABLE other than VALIDATE CONSTRAINT alone, DROP TABLE, DROP INDEX without CONCURRENTLY, TRUNCATE, CLUSTER) when no SET lock_timeout or SET LOCAL lock_timeout with a non-zero value appears earlier in the file, and the config does not say the runner sets it (lock_timeout_set_by_runner: true).
+A statement that takes an ACCESS EXCLUSIVE or SHARE ROW EXCLUSIVE lock on an existing table (ALTER TABLE other than VALIDATE CONSTRAINT alone, including RENAME COLUMN and RENAME TO; DROP TABLE; DROP INDEX without CONCURRENTLY; TRUNCATE; CLUSTER; VACUUM FULL; REINDEX without CONCURRENTLY; REFRESH MATERIALIZED VIEW without CONCURRENTLY; LOCK TABLE in SHARE ROW EXCLUSIVE mode or above) when no SET lock_timeout or SET LOCAL lock_timeout with a non-zero value appears earlier in the file, and the config does not say the runner sets it (lock_timeout_set_by_runner: true).
 
  Why it matters
 
-lock_timeout defaults to 0, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.htmlGUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's ACCESS SHARE lock on orders in one session and runs ALTER TABLE orders ADD COLUMN note text in another: the ALTER queues for its ACCESS EXCLUSIVE lock, and a plain SELECT count() FROM orders WHERE id = 1 that arrives next is blocked behind the waiting ALTER (it fails with 55P03 after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets lock_timeout = '1s': the ALTER fails fast with 55P03, traffic keeps flowing, and the retry after the report commits succeeds at once.
+lock_timeout defaults to 0, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.htmlGUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's ACCESS SHARE lock on orders in one session and runs ALTER TABLE orders ADD COLUMN note text in another: the ALTER queues for its ACCESS EXCLUSIVE lock, and a plain SELECT count() FROM orders WHERE id = 1 that arrives next is blocked behind the waiting ALTER (it fails with 55P03 after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The statement list follows the manual: "an ACCESS EXCLUSIVE lock is acquired unless explicitly noted" for every ALTER TABLE form, renames included ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and ACCESS EXCLUSIVE is "acquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands" and by LOCK TABLE by default ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). The good example sets lock_timeout = '1s': the ALTER fails fast with 55P03, traffic keeps flowing, and the retry after the report commits succeeds at once.
 
  The fix
 

@@ -12139,7 +12139,17 @@ import { join as join3, relative as relative2, resolve } from "node:path";
 var import_picomatch = __toESM(require_picomatch2(), 1);
 var LIQUIBASE_HEADER = /^\s*--\s*liquibase\s+formatted\s+sql/im;
 var DBMATE_UP = /^\s*--\s*migrate:up\b/im;
+var GOOSE_UP = /^\s*--\s*\+goose\s+Up\b/im;
+var GOOSE_DOWN = /^\s*--\s*\+goose\s+Down\b/i;
+var GOOSE_NO_TRANSACTION = /^\s*--\s*\+goose\s+NO\s+TRANSACTION\b/im;
 var FRAMEWORKS = [
+  {
+    name: "goose",
+    globs: ["**/*.sql"],
+    wrapped: true,
+    wrapReason: "goose runs each migration in a transaction unless the file says -- +goose NO TRANSACTION",
+    marker: (c) => GOOSE_UP.test(c)
+  },
   {
     name: "liquibase",
     globs: ["**/changelog/**/*.sql"],
@@ -12239,6 +12249,7 @@ function classify(path, content, config) {
   const normalized = path.replace(/\\/g, "/").replace(/^\.\//, "");
   const excludes = [...config.defaultExcludes ? DEFAULT_EXCLUDES : [], ...config.exclude];
   if (excludes.length && (0, import_picomatch.default)(excludes, { dot: true })(normalized)) return void 0;
+  if (!config.analyzeDown && /.down.sql$/i.test(normalized)) return void 0;
   const byContent = FRAMEWORKS.find((f) => f.marker && matcherFor(f)(normalized) && f.marker(content));
   const byPath = FRAMEWORKS.find((f) => !f.marker && matcherFor(f)(normalized));
   const detected = byContent ?? byPath;
@@ -12273,7 +12284,8 @@ var FRAMEWORKS2 = [
   "prisma",
   "golang-migrate",
   "dbmate",
-  "sqitch"
+  "sqitch",
+  "goose"
 ];
 var SEVERITIES = ["error", "warning", "info"];
 var TOP_KEYS = /* @__PURE__ */ new Set([
@@ -12282,6 +12294,7 @@ var TOP_KEYS = /* @__PURE__ */ new Set([
   "paths",
   "exclude",
   "default_excludes",
+  "analyze_down",
   "framework",
   "transaction",
   "lock_timeout_set_by_runner",
@@ -12323,6 +12336,7 @@ function defaultConfig(catalog2) {
     postgresVersion: 15,
     exclude: [],
     defaultExcludes: true,
+    analyzeDown: false,
     framework: "auto",
     transaction: "auto",
     lockTimeoutSetByRunner: false,
@@ -12358,6 +12372,7 @@ function parseConfig(text, catalog2) {
   if ("paths" in doc) config.paths = expectStringList(doc.paths, "paths");
   if ("exclude" in doc) config.exclude = expectStringList(doc.exclude, "exclude");
   if ("default_excludes" in doc) config.defaultExcludes = expectBoolean(doc.default_excludes, "default_excludes");
+  if ("analyze_down" in doc) config.analyzeDown = expectBoolean(doc.analyze_down, "analyze_down");
   if ("framework" in doc) config.framework = expectOneOf(doc.framework, "framework", ["auto", ...FRAMEWORKS2]);
   if ("transaction" in doc) config.transaction = expectOneOf(doc.transaction, "transaction", ["auto", "always", "never"]);
   if ("lock_timeout_set_by_runner" in doc)
@@ -16555,7 +16570,7 @@ function sqlArgument(call, keyword) {
   }
   return positional;
 }
-async function extractPython(content, framework) {
+async function extractPython(content, framework, analyzeDown = true) {
   const parser = await hostParser("python");
   const tree = parser.parse(content);
   const out2 = { segments: [], notAnalyzed: [], comments: [], transactionOptOut: false };
@@ -16581,6 +16596,7 @@ async function extractPython(content, framework) {
       out2.comments.push({ line: n.startPosition.row + 1, text: n.text.replace(/^#/, "") });
       return;
     }
+    if (n.type === "function_definition" && framework === "alembic" && !analyzeDown && n.childForFieldName("name")?.text === "downgrade") return;
     if (n.type === "assignment" && framework === "django") {
       const left = n.childForFieldName("left");
       const right = n.childForFieldName("right");
@@ -17022,7 +17038,7 @@ function mapCall(method, args2) {
 function literalText(v) {
   return v.t === "unknown" ? v.text : v.t === "symbol" ? `:${v.v}` : v.t === "string" ? `"${v.v}"` : JSON.stringify("v" in v ? v.v : null);
 }
-async function extractRuby(content) {
+async function extractRuby(content, analyzeDown = true) {
   const parser = await hostParser("ruby");
   const tree = parser.parse(content);
   const out2 = { segments: [], notAnalyzed: [], comments: [], transactionOptOut: false };
@@ -17032,6 +17048,7 @@ async function extractRuby(content) {
       out2.comments.push({ line: n.startPosition.row + 1, text: n.text.replace(/^#/, "") });
       return;
     }
+    if (n.type === "method" && !analyzeDown && n.childForFieldName("name")?.text === "down") return;
     if (n.type === "call" || n.type === "identifier") {
       const method = n.type === "call" ? n.childForFieldName("method") : n;
       const receiver = n.type === "call" ? n.childForFieldName("receiver") : null;
@@ -17121,15 +17138,16 @@ function liquibaseSegments(content) {
   flush();
   return segments;
 }
-function dbmateSegments(content) {
+function dbmateSegments(content, analyzeDown) {
   const lines = content.split("\n");
   const segments = [];
   let current = [];
   let currentLine = 1;
   let optOut = false;
   let anyOptOut = false;
+  let down = false;
   const flush = () => {
-    if (current.length) segments.push({ sql: current.join("\n"), line: currentLine, transactionOptOut: optOut || void 0 });
+    if (current.length && (analyzeDown || !down)) segments.push({ sql: current.join("\n"), line: currentLine, transactionOptOut: optOut || void 0 });
   };
   lines.forEach((text, i2) => {
     const m = DBMATE_SECTION.exec(text);
@@ -17137,6 +17155,7 @@ function dbmateSegments(content) {
       flush();
       current = [];
       currentLine = i2 + 1;
+      down = m[1].toLowerCase() === "down";
       optOut = /transaction\s*:\s*false/i.test(m[2]);
       if (optOut) anyOptOut = true;
     }
@@ -17144,6 +17163,15 @@ function dbmateSegments(content) {
   });
   flush();
   return { segments, anyOptOut };
+}
+function gooseSegments(content, analyzeDown) {
+  const lines = content.split("\n");
+  const segments = [];
+  const downAt = lines.findIndex((l) => GOOSE_DOWN.test(l));
+  const upLines = downAt >= 0 ? lines.slice(0, downAt) : lines;
+  segments.push({ sql: upLines.join("\n"), line: 1 });
+  if (analyzeDown && downAt >= 0) segments.push({ sql: lines.slice(downAt).join("\n"), line: downAt + 1 });
+  return { segments, optOut: GOOSE_NO_TRANSACTION.test(content) };
 }
 async function detectMigrations(files, opts) {
   const out2 = [];
@@ -17168,8 +17196,17 @@ async function toMigration(f, def, opts) {
     notAnalyzed: []
   };
   switch (def.name) {
+    case "goose": {
+      const g = gooseSegments(f.content, config.analyzeDown);
+      base.segments = g.segments;
+      if (g.optOut) {
+        base.wrapped = false;
+        base.wrapReason = "-- +goose NO TRANSACTION is set";
+      }
+      break;
+    }
     case "rails": {
-      const x = await extractRuby(f.content);
+      const x = await extractRuby(f.content, config.analyzeDown);
       base.segments = x.segments;
       base.notAnalyzed = x.notAnalyzed;
       base.comments = x.comments;
@@ -17181,7 +17218,7 @@ async function toMigration(f, def, opts) {
     }
     case "django":
     case "alembic": {
-      const x = await extractPython(f.content, def.name);
+      const x = await extractPython(f.content, def.name, config.analyzeDown);
       base.segments = x.segments;
       base.notAnalyzed = x.notAnalyzed;
       base.comments = x.comments;
@@ -17195,7 +17232,7 @@ async function toMigration(f, def, opts) {
       base.segments = liquibaseSegments(f.content);
       break;
     case "dbmate": {
-      const d = dbmateSegments(f.content);
+      const d = dbmateSegments(f.content, config.analyzeDown);
       base.segments = d.segments;
       if (d.anyOptOut && d.segments.every((s) => s.transactionOptOut)) {
         base.wrapped = false;
@@ -18123,6 +18160,8 @@ function transactionOptOutHint(framework) {
       return "Sqitch runs deploy scripts in a transaction: move the statement to a script your deploy runs outside Sqitch";
     case "golang-migrate":
       return "golang-migrate runs statements one by one: remove the explicit BEGIN/COMMIT";
+    case "goose":
+      return "goose: add  at the top of the file";
     case "sql":
       return "run the file outside a transaction (your runner wraps files: `transaction: always` in `.lurie-guard.yml`)";
   }
@@ -18255,6 +18294,37 @@ function heavyLock(stmt, ctx) {
     case "ClusterStmt": {
       if (!s.relation || ctx.isNewTable(s.relation)) return void 0;
       return { form: "CLUSTER", table: ctx.tableName(s.relation) };
+    }
+    case "RenameStmt": {
+      const table = s.renameType === "OBJECT_TABLE" || s.renameType === "OBJECT_COLUMN" && (!s.relationType || s.relationType === "OBJECT_TABLE");
+      if (!table || !s.relation || ctx.isNewTable(s.relation)) return void 0;
+      return { form: s.renameType === "OBJECT_TABLE" ? "ALTER TABLE ... RENAME TO" : "ALTER TABLE ... RENAME COLUMN", table: ctx.tableName(s.relation) };
+    }
+    case "VacuumStmt": {
+      if (!s.is_vacuumcmd || !hasOption(s.options, "full")) return void 0;
+      const rels = (s.rels ?? []).map((r) => r?.VacuumRelation?.relation).filter(Boolean);
+      const existing = rels.filter((r) => !ctx.isNewTable(r));
+      if (rels.length > 0 && existing.length === 0) return void 0;
+      return { form: "VACUUM FULL", table: rels.length ? ctx.tableName(existing[0]) : "every table" };
+    }
+    case "ReindexStmt": {
+      if (hasOption(s.params, "concurrently")) return void 0;
+      const rv = relName(s.relation);
+      if (!rv) return void 0;
+      if (s.kind === "REINDEX_OBJECT_INDEX" && ctx.isNewIndex(rv.name)) return void 0;
+      if (s.kind === "REINDEX_OBJECT_TABLE" && ctx.isNewTable(s.relation)) return void 0;
+      return { form: "REINDEX", table: s.kind === "REINDEX_OBJECT_INDEX" ? `the table of ${rv.display}` : rv.display };
+    }
+    case "RefreshMatViewStmt": {
+      if (s.concurrent || !s.relation || ctx.isNewTable(s.relation)) return void 0;
+      return { form: "REFRESH MATERIALIZED VIEW", table: ctx.tableName(s.relation) };
+    }
+    case "LockStmt": {
+      if (typeof s.mode === "number" && s.mode < 6) return void 0;
+      const rels = (s.relations ?? []).map((r) => r?.RangeVar).filter(Boolean);
+      const existing = rels.filter((r) => !ctx.isNewTable(r));
+      if (existing.length === 0) return void 0;
+      return { form: "LOCK TABLE", table: ctx.tableName(existing[0]) };
     }
     default:
       return void 0;
@@ -18973,7 +19043,7 @@ var catalog = [
     ],
     "verified": "2026-10-19",
     "title": "PG003: `CONCURRENTLY` inside a transaction",
-    "help": '## What it detects\n\n`CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY`, `REINDEX ... CONCURRENTLY` or `REFRESH MATERIALIZED VIEW CONCURRENTLY` inside an explicit `BEGIN` block, or in a file that the migration framework wraps in a transaction without the framework\'s opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).\n\n## Why it matters\n\n`CREATE INDEX CONCURRENTLY` "cannot" run "within a transaction block" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills good example runs it from inside a function, which is a transaction block, and asserts SQLSTATE `25001` (`active_sql_transaction`). The migration fails at deploy time, and in most frameworks the failed migration leaves the deploy half done.\n\n## The fix\n\nRun the statement outside a transaction. How depends on the framework:\n\n```text\nFlyway     <file>.sql.conf with executeInTransaction=false\nLiquibase  --changeset author:id runInTransaction:false\nRails      disable_ddl_transaction! in the migration class\nDjango     atomic = False on the Migration class\nAlembic    with op.get_context().autocommit_block():\ndbmate     -- migrate:up transaction:false\nPrisma     no opt-out: run it outside Prisma Migrate\nPlain SQL  move it outside the BEGIN ... COMMIT block\n```\n\n## When it does not apply\n\n- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or `transaction: never` in `.lurie-guard.yml`), a Flyway migration with `executeInTransaction=false`, a Rails migration with `disable_ddl_transaction!`, a Django migration with `atomic = False`, an Alembic step in `autocommit_block()`, a dbmate section with `transaction:false`, a Liquibase changeset with `runInTransaction:false`.\n- The statement is outside the explicit `BEGIN` ... `COMMIT` block of the file.',
+    "help": '## What it detects\n\n`CREATE INDEX CONCURRENTLY`, `DROP INDEX CONCURRENTLY`, `REINDEX ... CONCURRENTLY` or `REFRESH MATERIALIZED VIEW CONCURRENTLY` inside an explicit `BEGIN` block, or in a file that the migration framework wraps in a transaction without the framework\'s opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, goose; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).\n\n## Why it matters\n\n`CREATE INDEX CONCURRENTLY` "cannot" run "within a transaction block" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills good example runs it from inside a function, which is a transaction block, and asserts SQLSTATE `25001` (`active_sql_transaction`). The migration fails at deploy time, and in most frameworks the failed migration leaves the deploy half done.\n\n## The fix\n\nRun the statement outside a transaction. How depends on the framework:\n\n```text\ngoose      -- +goose NO TRANSACTION at the top of the file\nFlyway     <file>.sql.conf with executeInTransaction=false\nLiquibase  --changeset author:id runInTransaction:false\nRails      disable_ddl_transaction! in the migration class\nDjango     atomic = False on the Migration class\nAlembic    with op.get_context().autocommit_block():\ndbmate     -- migrate:up transaction:false\nPrisma     no opt-out: run it outside Prisma Migrate\nPlain SQL  move it outside the BEGIN ... COMMIT block\n```\n\n## When it does not apply\n\n- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or `transaction: never` in `.lurie-guard.yml`), a Flyway migration with `executeInTransaction=false`, a Rails migration with `disable_ddl_transaction!`, a Django migration with `atomic = False`, an Alembic step in `autocommit_block()`, a dbmate section with `transaction:false`, a Liquibase changeset with `runInTransaction:false`, a goose file with `-- +goose NO TRANSACTION`.\n- The statement is outside the explicit `BEGIN` ... `COMMIT` block of the file.',
     "messageTemplate": "`CREATE INDEX CONCURRENTLY` cannot run inside a transaction block: PostgreSQL rejects it with SQLSTATE `25001` and the migration fails. This statement runs in a file flyway wraps in a transaction. Fix: Flyway: create `<file>.sql.conf` next to the migration with `executeInTransaction=false`. No exception: the statement never works inside a transaction. (PG003, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/good/test.sql#L129-L131))"
   },
   {
@@ -18991,7 +19061,7 @@ var catalog = [
     ],
     "verified": "2026-10-19",
     "title": "PG004: DDL that takes a heavy lock without `SET lock_timeout`",
-    "help": "## What it detects\n\nA statement that takes an `ACCESS EXCLUSIVE` or `SHARE ROW EXCLUSIVE` lock on an existing table (`ALTER TABLE` other than `VALIDATE CONSTRAINT` alone, `DROP TABLE`, `DROP INDEX` without `CONCURRENTLY`, `TRUNCATE`, `CLUSTER`) when no `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (`lock_timeout_set_by_runner: true`).\n\n## Why it matters\n\n`lock_timeout` defaults to `0`, which disables it, and \"a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released\" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's `ACCESS SHARE` lock on `orders` in one session and runs `ALTER TABLE orders ADD COLUMN note text` in another: the `ALTER` queues for its `ACCESS EXCLUSIVE` lock, and a plain `SELECT count(*) FROM orders WHERE id = 1` that arrives next is blocked behind the waiting `ALTER` (it fails with `55P03` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets `lock_timeout = '1s'`: the `ALTER` fails fast with `55P03`, traffic keeps flowing, and the retry after the report commits succeeds at once.\n\n## The fix\n\n```sql\nSET lock_timeout = '2s';   -- a few seconds; the docs give no figure\nALTER TABLE orders ADD COLUMN note text;\n-- retry the step on SQLSTATE 55P03 with backoff\n```\n\nInside a transaction, `SET LOCAL lock_timeout` scopes it to that transaction. Commit each heavy-lock step on its own; locks are held until the end of the transaction.\n\n## When it does not apply\n\n- `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file; `SET lock_timeout = 0` and `RESET lock_timeout` turn the timeout off again.\n- The migration runner sets `lock_timeout` for every session (a connection option, `ALTER ROLE ... SET lock_timeout`, Rails' `config.active_record.postgresql_adapter...`, a Flyway `initSql`): set `lock_timeout_set_by_runner: true` in `.lurie-guard.yml` and the rule is silent.\n- The table is created in the same migration set.\n- An `ALTER TABLE` whose only subcommand is `VALIDATE CONSTRAINT` takes `SHARE UPDATE EXCLUSIVE`, which does not block reads or writes.",
+    "help": "## What it detects\n\nA statement that takes an `ACCESS EXCLUSIVE` or `SHARE ROW EXCLUSIVE` lock on an existing table (`ALTER TABLE` other than `VALIDATE CONSTRAINT` alone, including `RENAME COLUMN` and `RENAME TO`; `DROP TABLE`; `DROP INDEX` without `CONCURRENTLY`; `TRUNCATE`; `CLUSTER`; `VACUUM FULL`; `REINDEX` without `CONCURRENTLY`; `REFRESH MATERIALIZED VIEW` without `CONCURRENTLY`; `LOCK TABLE` in `SHARE ROW EXCLUSIVE` mode or above) when no `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (`lock_timeout_set_by_runner: true`).\n\n## Why it matters\n\n`lock_timeout` defaults to `0`, which disables it, and \"a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released\" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's `ACCESS SHARE` lock on `orders` in one session and runs `ALTER TABLE orders ADD COLUMN note text` in another: the `ALTER` queues for its `ACCESS EXCLUSIVE` lock, and a plain `SELECT count(*) FROM orders WHERE id = 1` that arrives next is blocked behind the waiting `ALTER` (it fails with `55P03` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The statement list follows the manual: \"an ACCESS EXCLUSIVE lock is acquired unless explicitly noted\" for every `ALTER TABLE` form, renames included ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and `ACCESS EXCLUSIVE` is \"acquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands\" and by `LOCK TABLE` by default ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). The good example sets `lock_timeout = '1s'`: the `ALTER` fails fast with `55P03`, traffic keeps flowing, and the retry after the report commits succeeds at once.\n\n## The fix\n\n```sql\nSET lock_timeout = '2s';   -- a few seconds; the docs give no figure\nALTER TABLE orders ADD COLUMN note text;\n-- retry the step on SQLSTATE 55P03 with backoff\n```\n\nInside a transaction, `SET LOCAL lock_timeout` scopes it to that transaction. Commit each heavy-lock step on its own; locks are held until the end of the transaction.\n\n## When it does not apply\n\n- `SET lock_timeout` or `SET LOCAL lock_timeout` with a non-zero value appears earlier in the file; `SET lock_timeout = 0` and `RESET lock_timeout` turn the timeout off again.\n- The migration runner sets `lock_timeout` for every session (a connection option, `ALTER ROLE ... SET lock_timeout`, Rails' `config.active_record.postgresql_adapter...`, a Flyway `initSql`): set `lock_timeout_set_by_runner: true` in `.lurie-guard.yml` and the rule is silent.\n- The table is created in the same migration set.\n- An `ALTER TABLE` whose only subcommand is `VALIDATE CONSTRAINT` takes `SHARE UPDATE EXCLUSIVE`, which does not block reads or writes.",
     "messageTemplate": "`ALTER TABLE` waits for a heavy lock (`ACCESS EXCLUSIVE` or `SHARE ROW EXCLUSIVE`) on `orders` with `lock_timeout` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run `SET lock_timeout = '2s'` (or `SET LOCAL` inside the transaction) before the first DDL and retry on SQLSTATE `55P03`. Not needed when your migration runner sets `lock_timeout` for every session: say so with `lock_timeout_set_by_runner: true` in `.lurie-guard.yml`. (PG004, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49))"
   },
   {
