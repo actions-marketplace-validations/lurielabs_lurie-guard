@@ -30,6 +30,7 @@ const TOP_KEYS = new Set([
   'postgres_version',
   'paths',
   'exclude',
+  'default_excludes',
   'framework',
   'transaction',
   'lock_timeout_set_by_runner',
@@ -77,6 +78,7 @@ export function defaultConfig(catalog: RuleCatalogEntry[]): ResolvedConfig {
     version: 1,
     postgresVersion: 15,
     exclude: [],
+    defaultExcludes: true,
     framework: 'auto',
     transaction: 'auto',
     lockTimeoutSetByRunner: false,
@@ -114,6 +116,7 @@ export function parseConfig(text: string | undefined, catalog: RuleCatalogEntry[
   }
   if ('paths' in doc) config.paths = expectStringList(doc.paths, 'paths');
   if ('exclude' in doc) config.exclude = expectStringList(doc.exclude, 'exclude');
+  if ('default_excludes' in doc) config.defaultExcludes = expectBoolean(doc.default_excludes, 'default_excludes');
   if ('framework' in doc) config.framework = expectOneOf(doc.framework, 'framework', ['auto', ...FRAMEWORKS] as const);
   if ('transaction' in doc) config.transaction = expectOneOf(doc.transaction, 'transaction', ['auto', 'always', 'never'] as const);
   if ('lock_timeout_set_by_runner' in doc)

@@ -75,7 +75,7 @@ jobs:
 | dbmate | `db/migrations/*.sql` com `-- migrate:up` | Sim | `-- migrate:up transaction:false` | Todo |
 | Sqitch | `deploy/*.sql` | Sim | - | Todo |
 
-`paths`, `exclude`, `framework` e `transaction` no `.lurie-guard.yml` sobrescrevem todos os padrões. `datetime` do Rails mapeia para `timestamp(6)`, o padrão do framework; uma aplicação que define `datetime_type = :timestamptz` desliga a PG019.
+Saída de build, dependências e VCS é ignorada por padrão (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), então uma migration do Flyway copiada para `target/classes/` não é relatada duas vezes; `exclude` estende essa lista e `default_excludes: false` a desliga. `paths`, `exclude`, `framework` e `transaction` no `.lurie-guard.yml` sobrescrevem todos os padrões. `datetime` do Rails mapeia para `timestamp(6)`, o padrão do framework; uma aplicação que define `datetime_type = :timestamptz` desliga a PG019.
 
 ### Rode localmente
 

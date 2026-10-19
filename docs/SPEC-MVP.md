@@ -40,7 +40,9 @@ A file is a migration when it matches a path glob from the config or, with no co
 
 For Rails, Django and Alembic the detector extracts the raw SQL from `execute` / `RunSQL` / `op.execute` string literals (strings, heredocs, `text("...")`), keeping the line offset inside the host file. In Rails it also maps the DSL helpers `add_index` (with `algorithm: :concurrently`, `unique:`, `name:`, `if_not_exists:`), `add_column` (with `null:`, `default:`), `add_foreign_key` (with `validate: false`, `column:`), `change_column_null` and `change_column` to the equivalent statement, and recognizes `disable_ddl_transaction!`. Anything the detector cannot map is skipped and listed in the summary as "not analyzed", never guessed. The exact mapping is the table in the README. **Django and Alembic DSL extraction** (`AddField`, `AddIndex`, `op.add_column`, `op.create_index`, ...) is not in the MVP; it is scheduled for after the first pilot that asks for it ([ADR 0008](adr/0008-host-language-migrations-mvp-scope.md)). Until then those files are reviewed for their raw SQL and their transaction opt-out only.
 
-The config overrides every built-in: `paths`, `exclude`, `framework`, `transaction`.
+Build, dependency and VCS output is never a migration source and is excluded by default, in the action and in the CLI: `**/target/**` (Maven, where Flyway migrations are copied to `target/classes/db/migration/` and would be reported twice), `**/build/**` and `**/.gradle/**` (Gradle), `**/out/**`, `**/bin/**`, `**/obj/**` (IDEs, .NET), `**/dist/**` (bundlers), `**/node_modules/**` (Node), `**/vendor/**` (Go, Ruby), `**/.venv/**`, `**/venv/**`, `**/__pycache__/**`, `**/.tox/**` (Python), `**/.git/**`. The list is `DEFAULT_EXCLUDES` in the detector; `exclude` in the config extends it and `default_excludes: false` turns it off.
+
+The config overrides every built-in: `paths`, `exclude` (extends the default excludes), `default_excludes`, `framework`, `transaction`.
 
 ### Parsing
 
@@ -100,8 +102,9 @@ postgres_version: 15          # the oldest major in production; changes fix text
 paths:                        # overrides the built-in globs; relative to the repo root
   - db/migrate/**/*.sql
   - services/*/migrations/**/*.sql
-exclude:
+exclude:                      # extends the default excludes (target/, build/, dist/, node_modules/, vendor/, ...)
   - db/migrate/seed/**
+default_excludes: true        # false: analyze build and dependency output too
 
 framework: auto               # auto | sql | flyway | liquibase | rails | django | alembic | prisma | golang-migrate | dbmate | sqitch
 transaction: auto             # auto | always | never: whether the runner wraps each file in a transaction

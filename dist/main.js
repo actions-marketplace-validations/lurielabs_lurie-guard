@@ -57989,6 +57989,7 @@ var TOP_KEYS = /* @__PURE__ */ new Set([
   "postgres_version",
   "paths",
   "exclude",
+  "default_excludes",
   "framework",
   "transaction",
   "lock_timeout_set_by_runner",
@@ -58029,6 +58030,7 @@ function defaultConfig(catalog2) {
     version: 1,
     postgresVersion: 15,
     exclude: [],
+    defaultExcludes: true,
     framework: "auto",
     transaction: "auto",
     lockTimeoutSetByRunner: false,
@@ -58063,6 +58065,7 @@ function parseConfig(text, catalog2) {
   }
   if ("paths" in doc) config.paths = expectStringList(doc.paths, "paths");
   if ("exclude" in doc) config.exclude = expectStringList(doc.exclude, "exclude");
+  if ("default_excludes" in doc) config.defaultExcludes = expectBoolean(doc.default_excludes, "default_excludes");
   if ("framework" in doc) config.framework = expectOneOf(doc.framework, "framework", ["auto", ...FRAMEWORKS]);
   if ("transaction" in doc) config.transaction = expectOneOf(doc.transaction, "transaction", ["auto", "always", "never"]);
   if ("lock_timeout_set_by_runner" in doc)
@@ -58192,6 +58195,23 @@ var FRAMEWORKS2 = [
     wrapReason: "plain SQL folder: treated as not wrapped unless the config says transaction: always or the file has BEGIN/COMMIT"
   }
 ];
+var DEFAULT_EXCLUDES = [
+  "**/target/**",
+  "**/build/**",
+  "**/out/**",
+  "**/dist/**",
+  "**/node_modules/**",
+  "**/vendor/**",
+  "**/bin/**",
+  "**/obj/**",
+  "**/.gradle/**",
+  "**/.git/**",
+  "**/.venv/**",
+  "**/venv/**",
+  "**/__pycache__/**",
+  "**/.tox/**"
+];
+var DEFAULT_EXCLUDED_DIRS = new Set(DEFAULT_EXCLUDES.map((g) => g.slice(3, -3)));
 var matchers = /* @__PURE__ */ new Map();
 function matcherFor(def) {
   let m = matchers.get(def.name);
@@ -58208,7 +58228,8 @@ function frameworkDef(name2) {
 }
 function classify(path4, content, config) {
   const normalized = path4.replace(/\\/g, "/").replace(/^\.\//, "");
-  if (config.exclude.length && (0, import_picomatch.default)(config.exclude, { dot: true })(normalized)) return void 0;
+  const excludes = [...config.defaultExcludes ? DEFAULT_EXCLUDES : [], ...config.exclude];
+  if (excludes.length && (0, import_picomatch.default)(excludes, { dot: true })(normalized)) return void 0;
   const byContent = FRAMEWORKS2.find((f) => f.marker && matcherFor(f)(normalized) && f.marker(content));
   const byPath = FRAMEWORKS2.find((f) => !f.marker && matcherFor(f)(normalized));
   const detected = byContent ?? byPath;

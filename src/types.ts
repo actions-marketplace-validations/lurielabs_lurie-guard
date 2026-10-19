@@ -137,7 +137,10 @@ export interface ResolvedConfig {
   version: 1;
   postgresVersion: number;
   paths?: string[];
+  /** Extends the built-in list (DEFAULT_EXCLUDES) unless defaultExcludes is false. */
   exclude: string[];
+  /** Apply the built-in build/dependency/VCS output excludes. */
+  defaultExcludes: boolean;
   framework: 'auto' | Framework;
   transaction: 'auto' | 'always' | 'never';
   lockTimeoutSetByRunner: boolean;

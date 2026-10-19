@@ -294,6 +294,21 @@ describe('the built action end to end (no network)', () => {
     expect(strict.status).toBe(1);
   });
 
+  it('ignores build output in the PR: a migration copied under target/ is skipped, its source is reviewed once', async () => {
+    reset();
+    const copy = 'target/classes/db/migration/V3__index.sql';
+    mkdirSync(join(workspace, 'target', 'classes', 'db', 'migration'), { recursive: true });
+    writeFileSync(join(workspace, copy), MIGRATION);
+    fake.state.files.push({ filename: copy, status: 'added', patch: patchFor(MIGRATION) });
+    const r = await runAction(fake, workspace, event());
+    fake.state.files.pop();
+    expect(r.status).toBe(0);
+    expect(r.outputs.findings).toBe('3');
+    expect(r.summary).toContain('| `target/classes/db/migration/V3__index.sql` | - | - | - | not a migration |');
+    const review = fake.requests.find((q) => q.method === 'POST' && /reviews/.test(q.url))!.body as { comments: { path: string }[] };
+    expect(review.comments.every((c) => c.path === 'migrations/0002_index.sql')).toBe(true);
+  });
+
   it('does nothing on a non-pull_request event', async () => {
     reset();
     const r = await runAction(fake, workspace, { ref: 'refs/heads/main' });

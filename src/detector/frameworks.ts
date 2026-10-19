@@ -80,6 +80,35 @@ export const FRAMEWORKS: FrameworkDef[] = [
   },
 ];
 
+/**
+ * Build, dependency and VCS output that is never a migration source, excluded by
+ * default (SPEC-MVP.md, "Migration detection"): Maven `target/`, Gradle `build/`
+ * and `.gradle/`, IDE and .NET `out/`, `bin/`, `obj/`, bundlers' `dist/`, Node
+ * `node_modules/`, Go and Ruby `vendor/`, Python `.venv/`, `venv/`,
+ * `__pycache__/`, `.tox/`, and `.git/`. A Flyway migration copied to
+ * `target/classes/db/migration/` would otherwise be reported twice.
+ * `default_excludes: false` in `.lurie-guard.yml` turns the list off; `exclude` extends it.
+ */
+export const DEFAULT_EXCLUDES: readonly string[] = [
+  '**/target/**',
+  '**/build/**',
+  '**/out/**',
+  '**/dist/**',
+  '**/node_modules/**',
+  '**/vendor/**',
+  '**/bin/**',
+  '**/obj/**',
+  '**/.gradle/**',
+  '**/.git/**',
+  '**/.venv/**',
+  '**/venv/**',
+  '**/__pycache__/**',
+  '**/.tox/**',
+];
+
+/** The directory names of DEFAULT_EXCLUDES, for walkers that skip them without reading. */
+export const DEFAULT_EXCLUDED_DIRS: ReadonlySet<string> = new Set(DEFAULT_EXCLUDES.map((g) => g.slice(3, -3)));
+
 const matchers = new Map<Framework, (p: string) => boolean>();
 function matcherFor(def: FrameworkDef): (p: string) => boolean {
   let m = matchers.get(def.name);
@@ -99,7 +128,8 @@ export function frameworkDef(name: Framework): FrameworkDef {
 /** Classifies a path; undefined when it is not a migration under this config. */
 export function classify(path: string, content: string, config: ResolvedConfig): FrameworkDef | undefined {
   const normalized = path.replace(/\\/g, '/').replace(/^\.\//, '');
-  if (config.exclude.length && picomatch(config.exclude, { dot: true })(normalized)) return undefined;
+  const excludes = [...(config.defaultExcludes ? DEFAULT_EXCLUDES : []), ...config.exclude];
+  if (excludes.length && picomatch(excludes, { dot: true })(normalized)) return undefined;
   const byContent = FRAMEWORKS.find((f) => f.marker && matcherFor(f)(normalized) && f.marker(content));
   const byPath = FRAMEWORKS.find((f) => !f.marker && matcherFor(f)(normalized));
   const detected = byContent ?? byPath;

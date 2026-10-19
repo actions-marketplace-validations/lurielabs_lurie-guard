@@ -16,6 +16,8 @@ describe('config', () => {
     expect(c.rules.PG004).toBe('warning');
     expect(c.outputs.maxComments).toBe(25);
     expect(c.outputs.sarif, 'the code scanning upload is opt-in (ADR 0011)').toBe(false);
+    expect(c.defaultExcludes).toBe(true);
+    expect(c.exclude).toEqual([]);
     expect(c.outputs.reviewComments).toBe(true);
     expect(c.llm.model).toBe('claude-sonnet-5-5');
   });
@@ -34,6 +36,7 @@ paths:
   - db/migrate/**/*.sql
 exclude:
   - db/migrate/seed/**
+default_excludes: false
 framework: flyway
 transaction: never
 lock_timeout_set_by_runner: true
@@ -58,6 +61,7 @@ llm:
     );
     expect(c.postgresVersion).toBe(18);
     expect(c.paths).toEqual(['db/migrate/**/*.sql']);
+    expect(c.defaultExcludes).toBe(false);
     expect(c.framework).toBe('flyway');
     expect(c.transaction).toBe('never');
     expect(c.lockTimeoutSetByRunner).toBe(true);
@@ -77,6 +81,7 @@ llm:
   it('names an unknown key', () => {
     expect(() => parseConfig('fail_onn: error\n', all)).toThrow(/unknown key `fail_onn`/);
     expect(() => parseConfig('outputs:\n  sarifs: true\n', all)).toThrow(/unknown key `outputs.sarifs`/);
+    expect(() => parseConfig('default_excludes: yes\n', all)).toThrow(/`default_excludes` must be true or false/);
     expect(() => parseConfig('llm:\n  modell: x\n', all)).toThrow(/unknown key `llm.modell`/);
     expect(() => parseConfig('rules:\n  PG001:\n    severty: error\n', all)).toThrow(/unknown key `rules.PG001.severty`/);
   });

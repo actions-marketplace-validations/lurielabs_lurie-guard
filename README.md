@@ -75,7 +75,7 @@ jobs:
 | dbmate | `db/migrations/*.sql` with `-- migrate:up` | Yes | `-- migrate:up transaction:false` | All |
 | Sqitch | `deploy/*.sql` | Yes | - | All |
 
-`paths`, `exclude`, `framework` and `transaction` in `.lurie-guard.yml` override every built-in. Rails `datetime` maps to `timestamp(6)`, the framework default; an application that sets `datetime_type = :timestamptz` turns PG019 off.
+Build, dependency and VCS output is skipped by default (`target/`, `build/`, `.gradle/`, `out/`, `bin/`, `obj/`, `dist/`, `node_modules/`, `vendor/`, `.venv/`, `venv/`, `__pycache__/`, `.tox/`, `.git/`), so a Flyway migration copied to `target/classes/` is not reported twice; `exclude` extends that list and `default_excludes: false` turns it off. `paths`, `exclude`, `framework` and `transaction` in `.lurie-guard.yml` override every built-in. Rails `datetime` maps to `timestamp(6)`, the framework default; an application that sets `datetime_type = :timestamptz` turns PG019 off.
 
 ### Run it locally
 

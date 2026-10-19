@@ -15,10 +15,30 @@
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import type { InputFile } from './detector/index.js';
+import { DEFAULT_EXCLUDED_DIRS } from './detector/frameworks.js';
 import { loadCases, runCase } from './harness-core.js';
 import { buildSarif } from './reporters/sarif.js';
 import { planReview } from './reporters/review.js';
-import { ConfigError, fullCatalog, run, VERSION } from './run.js';
+import { ConfigError, fullCatalog, loadConfig, run, VERSION } from './run.js';
+
+const USAGE = `Usage: lurie-guard [options] [files...]
+
+  --root DIR          repository root (default: cwd); files are relative to it
+  --config FILE       .lurie-guard.yml to use (default: <root>/.lurie-guard.yml)
+  --modified FILE     treat FILE as modified rather than added (repeatable)
+  --format FORMAT     text | json | sarif | summary (default: text)
+  --out FILE          write the output there instead of stdout
+  --fail-on LEVEL     none | warning | error (overrides the config)
+  --all-rules         enable every rule, including the info ones
+  --fixtures DIR      run every rule fixture under DIR (the determinism check)
+  --version, --help
+
+With no files, every file under --root that the detector classifies as a
+migration is reviewed as "added". Build, dependency and VCS output (target/,
+build/, dist/, node_modules/, vendor/, ...) is skipped unless the config says
+default_excludes: false. Exit code: 0, or 1 when a finding reaches --fail-on
+(or the config's fail_on); 2 on a usage or configuration error.
+`;
 
 interface Args {
   root: string;
@@ -72,22 +92,28 @@ function parseArgs(argv: string[]): Args {
         break;
       case '--help':
       case '-h':
-        console.log(readFileSync(new URL(import.meta.url)).toString().split('\n').slice(0, 16).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+        process.stdout.write(USAGE);
         process.exit(0);
         break;
       default:
-        if (x.startsWith('-')) throw new Error(`unknown option ${x}`);
+        if (x.startsWith('-')) {
+          process.stderr.write(`unknown option ${x}\n\n${USAGE}`);
+          process.exit(2);
+        }
         a.files.push(x);
     }
   }
   return a;
 }
 
-function walk(dir: string, out: string[] = []): string[] {
+const ALWAYS_SKIPPED = new Set(['node_modules', '.git']);
+
+/** Files under the root; build and dependency output is not even read unless the config asks for it. */
+function walk(dir: string, skipDefaults: boolean, out: string[] = []): string[] {
   for (const e of readdirSync(dir).sort()) {
-    if (e === 'node_modules' || e === '.git') continue;
+    if (ALWAYS_SKIPPED.has(e) || (skipDefaults && DEFAULT_EXCLUDED_DIRS.has(e))) continue;
     const p = join(dir, e);
-    if (statSync(p).isDirectory()) walk(p, out);
+    if (statSync(p).isDirectory()) walk(p, skipDefaults, out);
     else out.push(p);
   }
   return out;
@@ -128,7 +154,20 @@ async function main(): Promise<void> {
   }
   const configPath = args.config ?? join(args.root, '.lurie-guard.yml');
   const configText = existsSync(configPath) ? readFileSync(configPath, 'utf8') : undefined;
-  const paths = args.files.length ? args.files.map((f) => f.replace(/\\/g, '/')) : walk(args.root).map((p) => relative(args.root, p).replace(/\\/g, '/'));
+  // The config decides whether build output is walked at all (default_excludes); an invalid config is a usage error.
+  let skipDefaults: boolean;
+  try {
+    skipDefaults = loadConfig(configText).defaultExcludes;
+  } catch (err) {
+    if (err instanceof ConfigError) {
+      console.error(err.message);
+      process.exit(2);
+    }
+    throw err;
+  }
+  const paths = args.files.length
+    ? args.files.map((f) => f.replace(/\\/g, '/'))
+    : walk(args.root, skipDefaults).map((p) => relative(args.root, p).replace(/\\/g, '/'));
   const files: InputFile[] = [];
   for (const p of paths) {
     const abs = resolve(args.root, p);

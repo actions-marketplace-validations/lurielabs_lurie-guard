@@ -34,6 +34,24 @@ describe('framework classification', () => {
     if (wrapped !== undefined) expect(def?.wrapped).toBe(wrapped);
   });
 
+  it.each([
+    'target/classes/db/migration/V3__x.sql',
+    'build/resources/main/db/migration/V3__x.sql',
+    'app/out/db/migrate/20261019_x.rb',
+    'dist/db/migration/V1__x.sql',
+    'node_modules/pkg/db/migration/V1__x.sql',
+    'vendor/pkg/db/migration/V1__x.sql',
+    'bin/deploy/x.sql',
+    'obj/deploy/x.sql',
+    '.gradle/db/migration/V1__x.sql',
+    '.venv/lib/app/migrations/0001_x.py',
+  ])('build and dependency output is excluded by default: %s', (path) => {
+    expect(classify(path, '', config())).toBeUndefined();
+    const c = config();
+    c.defaultExcludes = false;
+    expect(classify(path, '', c)).toBeDefined();
+  });
+
   it('config paths override the built-in globs; exclude always applies; framework can be forced', () => {
     const c = config();
     c.paths = ['services/*/schema/**/*.sql'];
