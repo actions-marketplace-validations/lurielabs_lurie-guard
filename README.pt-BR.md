@@ -87,7 +87,7 @@ node dist/cli.js --root . --format sarif --out findings.sarif        # toda migr
 node dist/cli.js --root . --fail-on error                            # sai com 1 em erros
 ```
 
-A CLI é o mesmo bundle da action e lê o mesmo `.lurie-guard.yml`; é como os pilotos varrem o histórico de um repositório.
+A CLI é o mesmo bundle da action e lê o mesmo `.lurie-guard.yml`; é como os pilotos varrem o histórico de um repositório. Sem arquivos, cada migration sob a raiz é o seu próprio conjunto (uma tabela criada em um arquivo anterior é uma tabela existente, como era quando aquele PR foi aberto); `--one-set` trata a pasta como um PR só, e uma lista explícita de arquivos é sempre um PR só.
 
 ## Regras (pacote PostgreSQL, MVP)
 

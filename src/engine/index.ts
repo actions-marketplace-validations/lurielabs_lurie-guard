@@ -28,6 +28,11 @@ export interface AnalyzeInput {
   config: ResolvedConfig;
   rules: Rule[];
   catalog: RuleCatalogEntry[];
+  /**
+   * Each file is its own migration set (a history scan replays each migration as the PR it
+   * was): tables created in an earlier file are existing. Default: the files are one PR.
+   */
+  perFile?: boolean;
 }
 
 interface ParsedFile {
@@ -67,9 +72,9 @@ export async function analyze(input: AnalyzeInput): Promise<AnalysisResult> {
     parsed.push({ file, statements: failure ? [] : statements, comments, failure });
   }
 
-  // 2. What the migration set creates.
-  const pr = newPrState();
-  for (const p of parsed) collectCreated(p.file, p.statements, pr);
+  // 2. What the migration set creates (per file when a history scan replays each migration on its own).
+  const shared = newPrState();
+  if (!input.perFile) for (const p of parsed) collectCreated(p.file, p.statements, shared);
 
   // 3. Rules, file by file, statement by statement.
   const findings: Finding[] = [];
@@ -106,6 +111,8 @@ export async function analyze(input: AnalyzeInput): Promise<AnalysisResult> {
       continue;
     }
 
+    const pr = input.perFile ? newPrState() : shared;
+    if (input.perFile) collectCreated(file, p.statements, pr);
     const state = newFileState();
     const ctx: RuleContext = {
       file,

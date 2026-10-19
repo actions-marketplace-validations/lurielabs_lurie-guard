@@ -99,6 +99,18 @@ describe('the built CLI', () => {
     rmSync(join(repo, 'apps'), { recursive: true, force: true });
   });
 
+  it('a whole-folder scan replays each migration as its own PR; a file list or --one-set is one PR', () => {
+    const h = mkdtempSync(join(tmpdir(), 'lurie-guard-history-'));
+    mkdirSync(join(h, 'migrations'));
+    writeFileSync(join(h, 'migrations', '001_create.sql'), 'CREATE TABLE users (id bigint PRIMARY KEY, name text);\n');
+    writeFileSync(join(h, 'migrations', '002_index.sql'), 'CREATE INDEX users_name_idx ON users (name);\n');
+    const ids = (r: ReturnType<typeof run>) => (JSON.parse(r.stdout) as { findings: { ruleId: string }[] }).findings.map((f) => f.ruleId);
+    expect(ids(run(['--root', '.', '--format', 'json'], h))).toContain('PG001');
+    expect(ids(run(['--root', '.', '--format', 'json', '--one-set'], h))).not.toContain('PG001');
+    expect(ids(run(['--root', '.', '--format', 'json', 'migrations/001_create.sql', 'migrations/002_index.sql'], h))).not.toContain('PG001');
+    rmSync(h, { recursive: true, force: true });
+  });
+
   it('--fail-on error exits 1 on an error finding; an invalid config exits 2 naming the key', () => {
     expect(run(['--root', '.', '--fail-on', 'error'], repo).status).toBe(1);
     expect(run(['--root', '.', '--fail-on', 'none'], repo).status).toBe(0);

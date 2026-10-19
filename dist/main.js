@@ -63677,8 +63677,8 @@ async function analyze(input) {
     }
     parsed.push({ file, statements: failure ? [] : statements, comments, failure });
   }
-  const pr = newPrState();
-  for (const p of parsed) collectCreated(p.file, p.statements, pr);
+  const shared = newPrState();
+  if (!input.perFile) for (const p of parsed) collectCreated(p.file, p.statements, shared);
   const findings = [];
   const suppressions = [];
   const reports = [];
@@ -63711,6 +63711,8 @@ async function analyze(input) {
       });
       continue;
     }
+    const pr = input.perFile ? newPrState() : shared;
+    if (input.perFile) collectCreated(file, p.statements, pr);
     const state = newFileState();
     const ctx = {
       file,
@@ -65325,7 +65327,7 @@ async function run2(input, extra = {}) {
   });
   const detected = new Set(migrations.map((m) => m.path));
   const skipped = input.files.map((f) => f.path).filter((p) => !detected.has(p) && !p.endsWith(".conf"));
-  const result = await analyze({ files: migrations, config, rules, catalog: all });
+  const result = await analyze({ files: migrations, config, rules, catalog: all, perFile: input.perFile });
   const active = result.findings.filter((f) => !f.suppressed);
   const counts2 = {
     findings: active.length,

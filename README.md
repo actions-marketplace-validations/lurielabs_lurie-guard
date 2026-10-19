@@ -87,7 +87,7 @@ node dist/cli.js --root . --format sarif --out findings.sarif        # every mig
 node dist/cli.js --root . --fail-on error                            # exit 1 on errors
 ```
 
-The CLI is the same bundle as the action and reads the same `.lurie-guard.yml`; it is how the pilots scan a repository's history.
+The CLI is the same bundle as the action and reads the same `.lurie-guard.yml`; it is how the pilots scan a repository's history. With no files, each migration under the root is its own migration set (a table created in an earlier file is an existing table, as it was when that PR was opened); `--one-set` treats the folder as one PR, and an explicit list of files is always one PR.
 
 ## Rules (PostgreSQL pack, MVP)
 

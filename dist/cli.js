@@ -17853,8 +17853,8 @@ async function analyze(input) {
     }
     parsed.push({ file, statements: failure ? [] : statements, comments, failure });
   }
-  const pr = newPrState();
-  for (const p of parsed) collectCreated(p.file, p.statements, pr);
+  const shared = newPrState();
+  if (!input.perFile) for (const p of parsed) collectCreated(p.file, p.statements, shared);
   const findings = [];
   const suppressions = [];
   const reports = [];
@@ -17887,6 +17887,8 @@ async function analyze(input) {
       });
       continue;
     }
+    const pr = input.perFile ? newPrState() : shared;
+    if (input.perFile) collectCreated(file, p.statements, pr);
     const state = newFileState();
     const ctx = {
       file,
@@ -19717,7 +19719,7 @@ async function run2(input, extra = {}) {
   });
   const detected = new Set(migrations.map((m) => m.path));
   const skipped = input.files.map((f) => f.path).filter((p) => !detected.has(p) && !p.endsWith(".conf"));
-  const result = await analyze({ files: migrations, config, rules, catalog: all });
+  const result = await analyze({ files: migrations, config, rules, catalog: all, perFile: input.perFile });
   const active = result.findings.filter((f) => !f.suppressed);
   const counts2 = {
     findings: active.length,
@@ -19751,16 +19753,20 @@ var USAGE = `Usage: lurie-guard [options] [files...]
   --fail-on LEVEL     none | warning | error (overrides the config)
   --all-rules         enable every rule, including the info ones
   --fixtures DIR      run every rule fixture under DIR (the determinism check)
+  --one-set           with no files: the whole folder is one PR (default: each file is
+                      its own migration set, as a history scan replays each PR)
   --version, --help
 
 With no files, every file under --root that the detector classifies as a
-migration is reviewed as "added". Build, dependency and VCS output (target/,
+migration is reviewed, each as its own migration set (a table created in an
+earlier file is existing); a list of files is reviewed as one PR. Build,
+dependency and VCS output (target/,
 build/, dist/, node_modules/, vendor/, ...) is skipped unless the config says
 default_excludes: false. Exit code: 0, or 1 when a finding reaches --fail-on
 (or the config's fail_on); 2 on a usage or configuration error.
 `;
 function parseArgs2(argv) {
-  const a = { root: process.cwd(), modified: /* @__PURE__ */ new Set(), format: "text", allRules: false, files: [] };
+  const a = { root: process.cwd(), modified: /* @__PURE__ */ new Set(), format: "text", allRules: false, oneSet: false, files: [] };
   for (let i2 = 0; i2 < argv.length; i2++) {
     const x = argv[i2];
     const next = () => {
@@ -19789,6 +19795,9 @@ function parseArgs2(argv) {
         break;
       case "--all-rules":
         a.allRules = true;
+        break;
+      case "--one-set":
+        a.oneSet = true;
         break;
       case "--fixtures":
         a.fixtures = resolve(next());
@@ -19879,6 +19888,7 @@ async function main() {
     out2 = await run2({
       files,
       configText,
+      perFile: args2.files.length === 0 && !args2.oneSet,
       configOverride: (config) => {
         if (args2.failOn) config.failOn = args2.failOn;
         if (args2.allRules) {

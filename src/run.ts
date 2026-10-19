@@ -20,6 +20,8 @@ export interface RunInput {
   configOverride?: (config: ResolvedConfig) => void;
   readSibling?: (path: string) => string | undefined;
   notices?: string[];
+  /** Each file as its own migration set (history scans). */
+  perFile?: boolean;
 }
 
 export interface RunOutput {
@@ -66,7 +68,7 @@ export async function run(input: RunInput, extra: Partial<Pick<SummaryOptions, '
   });
   const detected = new Set(migrations.map((m) => m.path));
   const skipped = input.files.map((f) => f.path).filter((p) => !detected.has(p) && !p.endsWith('.conf'));
-  const result = await analyze({ files: migrations, config, rules, catalog: all });
+  const result = await analyze({ files: migrations, config, rules, catalog: all, perFile: input.perFile });
   const active = result.findings.filter((f) => !f.suppressed);
   const counts = {
     findings: active.length,

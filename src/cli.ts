@@ -9,6 +9,7 @@
 //     --fail-on LEVEL     none | warning | error (overrides the config)
 //     --all-rules         enable every rule, including the info ones
 //     --fixtures DIR      run every rule fixture under DIR (the determinism check)
+//     --one-set           with no files: treat the whole folder as one PR (default: each file is its own)
 //
 // With no files, every file under --root that the detector classifies as a
 // migration is reviewed as "added": the way the pilots scan history.
@@ -31,10 +32,14 @@ const USAGE = `Usage: lurie-guard [options] [files...]
   --fail-on LEVEL     none | warning | error (overrides the config)
   --all-rules         enable every rule, including the info ones
   --fixtures DIR      run every rule fixture under DIR (the determinism check)
+  --one-set           with no files: the whole folder is one PR (default: each file is
+                      its own migration set, as a history scan replays each PR)
   --version, --help
 
 With no files, every file under --root that the detector classifies as a
-migration is reviewed as "added". Build, dependency and VCS output (target/,
+migration is reviewed, each as its own migration set (a table created in an
+earlier file is existing); a list of files is reviewed as one PR. Build,
+dependency and VCS output (target/,
 build/, dist/, node_modules/, vendor/, ...) is skipped unless the config says
 default_excludes: false. Exit code: 0, or 1 when a finding reaches --fail-on
 (or the config's fail_on); 2 on a usage or configuration error.
@@ -49,11 +54,12 @@ interface Args {
   failOn?: 'none' | 'warning' | 'error';
   allRules: boolean;
   fixtures?: string;
+  oneSet: boolean;
   files: string[];
 }
 
 function parseArgs(argv: string[]): Args {
-  const a: Args = { root: process.cwd(), modified: new Set(), format: 'text', allRules: false, files: [] };
+  const a: Args = { root: process.cwd(), modified: new Set(), format: 'text', allRules: false, oneSet: false, files: [] };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     const next = (): string => {
@@ -82,6 +88,9 @@ function parseArgs(argv: string[]): Args {
         break;
       case '--all-rules':
         a.allRules = true;
+        break;
+      case '--one-set':
+        a.oneSet = true;
         break;
       case '--fixtures':
         a.fixtures = resolve(next());
@@ -179,6 +188,7 @@ async function main(): Promise<void> {
     out = await run({
       files,
       configText,
+      perFile: args.files.length === 0 && !args.oneSet,
       configOverride: (config) => {
         if (args.failOn) config.failOn = args.failOn;
         if (args.allRules) for (const r of fullCatalog()) if (r.folder) config.rules[r.id] = config.rules[r.id] ?? r.severity;
