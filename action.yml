@@ -1,0 +1,47 @@
+name: 'lurie-guard'
+description: 'Reviews the migrations in a pull request for the mistakes that cause production incidents, with measured evidence behind every rule.'
+author: 'Lurie Labs'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  github_token:
+    description: 'Token used to list the PR files, read the base-branch config, post the review and upload the SARIF. Defaults to the workflow token.'
+    required: false
+    default: ${{ github.token }}
+  anthropic_api_key:
+    description: 'Optional. Your own Anthropic API key: adds a plain-words explanation to each finding, from inside your runner. Never required for a finding.'
+    required: false
+  config_path:
+    description: 'Path of the configuration file, read from the base branch of the PR.'
+    required: false
+    default: '.lurie-guard.yml'
+  sarif_file:
+    description: 'Where the SARIF 2.1.0 file is written.'
+    required: false
+    default: 'lurie-guard.sarif'
+  upload_sarif:
+    description: 'Upload the SARIF to code scanning when the token has security-events: write.'
+    required: false
+    default: 'true'
+  strict:
+    description: 'Exit 1 when a GitHub API call fails (comments, SARIF upload). Default: log a warning and continue.'
+    required: false
+    default: 'false'
+
+outputs:
+  findings:
+    description: 'Number of findings after suppression.'
+  errors:
+    description: 'Number of error findings after suppression.'
+  warnings:
+    description: 'Number of warning findings after suppression.'
+  sarif_file:
+    description: 'Path of the SARIF file written.'
+  summary_file:
+    description: 'Path of the Markdown summary written.'
+
+runs:
+  using: 'node24'
+  main: 'dist/main.js'

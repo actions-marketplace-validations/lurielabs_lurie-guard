@@ -19,3 +19,8 @@ benchmarks/**/results/
 Thumbs.db
 .idea/
 .vscode/
+
+# Run output
+*.sarif
+lurie-guard-summary.md
+test/tmp/
