@@ -1,0 +1,5 @@
+# Normalize line endings so scripts, fixtures and snapshot tests behave the same on every OS.
+* text=auto eol=lf
+*.png binary
+*.lock -diff
+dist/** linguist-generated=true

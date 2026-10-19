@@ -1,0 +1,174 @@
+# CLAUDE.md
+
+This file guides Claude Code (and any other coding agent) when working inside this repository.
+
+## What this repository is
+
+`pr-guard` is a GitHub Action (later also a GitHub App) that reviews pull requests for the mistakes that cause production incidents and cloud cost, and backs every finding with measured evidence. It installs in two minutes:
+
+```yaml
+- uses: rafapeixer/pr-guard@v1
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # optional, bring your own key
+```
+
+The first rule pack covers **PostgreSQL migrations**: `CREATE INDEX` without `CONCURRENTLY`, DDL without `lock_timeout`, `SET NOT NULL` without a validated `CHECK`, foreign keys without `NOT VALID`, type changes that rewrite the table, `VACUUM FULL`, and so on. Every rule maps to a tested skill in [db-skills](https://github.com/rafapeixer/db-skills), whose `test.sql` files run against real PostgreSQL 15 and 18 in CI and show the lock, the scan or the rewrite the rule prevents. The skill's good and bad SQL are the rule's fixtures.
+
+It is **not** "an AI that comments on your PR". The core is deterministic: SQL is parsed with PostgreSQL's own parser, rules are plain code, and a finding is the same on every run. The optional LLM layer (the client's own Anthropic key, running inside the client's runner) explains findings in plain words and catches what a parser cannot; it never decides whether a deterministic finding exists.
+
+Primary audience: teams that deploy PostgreSQL migrations from pull requests, with or without coding agents writing them. Secondary audience: contributors adding rules.
+
+Sister repositories: [db-skills](https://github.com/rafapeixer/db-skills) (the evidence for the PostgreSQL and MySQL packs), [go-skills](https://github.com/rafapeixer/go-skills) and [java-skills](https://github.com/rafapeixer/java-skills) (the evidence for the language packs that come later).
+
+## Non-negotiable principles
+
+1. **Deterministic core.** A core rule needs no network, no LLM and no database to run. Given the same diff and config it produces the same findings, byte for byte. CI asserts this by running every fixture twice and diffing the output.
+2. **Every rule has a fixture and an evidence link.** A rule ships only with at least one `bad` fixture that triggers it, at least one `good` fixture that does not, and a link to the db-skills (or other sister repo) example whose test shows the cost of the mistake. "It is bad practice" is not evidence; a lock mode in `pg_locks`, a changed `relfilenode`, a sequential scan count or a measured index size is.
+3. **Code never leaves the runner.** The action reads the diff from the checkout and the GitHub API, writes comments and SARIF back, and makes no other network call. When the client provides an Anthropic key, the LLM call is made from inside the client's runner with the client's key and the client's data-handling terms; pr-guard has no server that sees code. There is no telemetry.
+4. **Least privilege.** The workflow needs only `contents: read`, `pull-requests: write` and `security-events: write`. The action never asks for more and documents why each one is needed.
+5. **False positives are bugs with a deadline.** An `error`-severity rule that produces a confirmed false positive is demoted to `warning` in a patch release within 48 hours and stays there until the fixture that reproduces the false positive is green. See "Severity policy" below.
+6. **Rules match the skills.** A rule's position (what is wrong, what to do instead, when not to apply) is the skill's position. If a rule needs a different position, the skill changes first, in its own repository, with its own test.
+7. **Plain words.** Messages say what will happen in production ("holds a SHARE lock on `orders` for the whole build; inserts and updates wait"), the fix, and the exception. No marketing words anywhere in this repository.
+
+## Repository structure
+
+Planned layout. The product code does not exist yet; the documents in `docs/` are the design, and this section is updated as the code lands.
+
+```
+pr-guard/
+├── CLAUDE.md                    # this file
+├── README.md / README.pt-BR.md  # what it does, install, status (English / Portuguese, kept in sync)
+├── LICENSE                      # Apache-2.0 (docs/adr/0006-license.md)
+├── action.yml                   # the GitHub Action metadata: inputs, outputs, runs
+├── .gitattributes               # LF everywhere
+├── .gitignore
+│
+├── docs/
+│   ├── VISION.md                # problem, who pays, why now, what success looks like
+│   ├── SPEC-MVP.md              # the precise MVP: rules, config, outputs, acceptance criteria
+│   ├── ARCHITECTURE.md          # components, runtime, data flow, security model, rule packs
+│   ├── RULES.md                 # the rule authoring standard
+│   ├── ROADMAP.md               # phases with exit criteria, language-skills plan
+│   ├── COMPETITION.md           # what exists, where pr-guard differs, where it does not compete
+│   ├── adr/                     # one ADR per key decision, numbered
+│   └── internal/                # gitignored: pricing, pilots, go-to-market
+│
+├── .claude/                     # contributor tooling, not shipped to users
+│   ├── settings.json            # allows the scripts and npm test/build without prompts
+│   └── skills/
+│       ├── new-rule/            # /new-rule <PGnnn> <slug>: scaffold a rule from the template
+│       └── review-rule/         # /review-rule <PGnnn>: check a rule against docs/RULES.md
+│
+├── rules/                       # one folder per rule, grouped by pack
+│   └── pg/
+│       └── PG001-create-index-not-concurrently/
+│           ├── RULE.md          # frontmatter (id, severity, skill, evidence) + the rule text
+│           ├── rule.ts          # detection: a matcher over the parse tree
+│           ├── rule.test.ts     # runs the fixtures and asserts the expected findings
+│           └── fixtures/
+│               ├── bad/         # *.sql that must trigger the rule; `-- expect: PG001` marks each finding
+│               └── good/        # *.sql that must not trigger it (the exceptions, the right form)
+│
+├── src/                         # the action: diff reader, migration detector, parser, engine, reporters
+├── fixtures/self/               # a migrations folder the action reviews on its own PRs (dogfooding)
+├── templates/RULE.template.md   # every new rule starts from this
+├── scripts/
+│   ├── validate.sh              # rule format, ids unique, fixtures present, evidence links resolve, README index
+│   ├── test-rules.sh            # every fixture produces exactly the expected findings; determinism diff
+│   ├── test-fixtures.sh         # optional: runs bad fixtures against real PostgreSQL in Docker to confirm the cost
+│   └── check-freshness.sh       # fails when a rule's `verified` date is older than six months
+├── evals/                       # with/without-LLM evals for the explainer and the LLM-only checks
+└── .github/workflows/           # ci.yml on every push and PR; release.yml tags v1 and v1.x.y
+```
+
+### Guardrails, not prose
+
+Everything that can be checked is checked by a script, so a wrong change fails CI instead of relying on review:
+
+| Mistake | Caught by |
+|---|---|
+| Rule folder without `RULE.md`, `rule.ts`, a `bad` and a `good` fixture | `validate.sh` |
+| Duplicate or malformed rule id, missing required frontmatter field | `validate.sh` |
+| Evidence link that does not resolve to a file in the sister repository at the pinned commit | `validate.sh` |
+| Fixture whose `-- expect:` markers do not match the findings exactly (missing, extra, wrong line) | `test-rules.sh` |
+| Two runs on the same input that produce different output | `test-rules.sh` (determinism diff) |
+| Bad fixture whose cost no longer reproduces on PostgreSQL 15 or 18 | `test-fixtures.sh` (weekly, Docker) |
+| Rule not re-verified for six months | `check-freshness.sh`, monthly |
+| README index out of sync with `rules/` | `validate.sh` |
+
+When you add a rule a script could enforce, add the check in the same PR.
+
+## Rule format
+
+Every rule is a folder `rules/<pack>/<ID>-<slug>/` with a `RULE.md` that starts with YAML frontmatter:
+
+```markdown
+---
+id: PG001
+name: create-index-not-concurrently
+severity: error            # error | warning | info
+pack: pg
+since: 0.1.0
+skill: db-skills/skills/pg-online-migrations   # the skill this rule enforces
+evidence:
+  - db-skills/skills/pg-online-migrations/examples/bad/test.sql#L121-L128   # the assertion that shows the cost
+  - https://www.postgresql.org/docs/18/sql-createindex.html                  # the primary source
+verified: 2026-10-19
+---
+```
+
+Required sections of `RULE.md`, in this order: **What it detects**, **Why it matters** (the measured cost, with the evidence link), **The fix**, **When it does not apply** (the exemptions the detector implements), **Message** (the exact text the user sees), **Fixtures** (one line per fixture file saying what it shows). The full standard, with the severity policy and the false-positive procedure, is in [docs/RULES.md](docs/RULES.md).
+
+## How to add a rule
+
+1. Check that the rule is in the catalog in [docs/SPEC-MVP.md](docs/SPEC-MVP.md) or in [docs/ROADMAP.md](docs/ROADMAP.md). If it is not, open an issue first and say which skill it enforces and what evidence exists.
+2. Run `/new-rule <ID> <slug>` (or copy `templates/RULE.template.md` by hand).
+3. Copy the fixtures from the skill's `examples/good` and `examples/bad`: the statements the skill shows, trimmed to what the rule needs, with `-- expect: <ID>` on each line that must produce a finding. Add the exemptions as `good` fixtures (the table created in the same file, the `CONCURRENTLY` form, the inline suppression).
+4. Write `rule.ts` as a matcher over the parse tree. No regular expressions over SQL text; the parser is the only source of structure.
+5. Run `bash scripts/validate.sh` and `bash scripts/test-rules.sh`. Both must pass.
+6. Add the rule to the index in `README.md` and `README.pt-BR.md`.
+7. Run `/review-rule <ID>` and fix what it reports.
+
+## Testing and CI expectations
+
+- `npm test` runs every `rule.test.ts` and the engine tests. It must pass with no network.
+- `scripts/test-rules.sh` runs every fixture through the whole pipeline (parse, detect, report) and compares the SARIF and the review comments with the `-- expect:` markers, twice, diffing the two runs.
+- `scripts/test-fixtures.sh` runs the `bad` fixtures against PostgreSQL 15 and 18 in Docker and asserts the cost the rule claims (the lock mode, the rewrite, the error). It is slow and runs weekly and on demand, not on every push.
+- CI pins every third-party action to a full commit SHA and runs with `permissions: contents: read` unless a job needs more.
+- The action runs on itself: this repository's own migrations folder (`fixtures/self/`) is reviewed by the action on every PR.
+
+## Commits and PRs
+
+- One rule per PR. One logical change per commit.
+- Commit message format: `rule(PG001): add create-index-not-concurrently`, `engine: parse Flyway placeholders`, `docs(spec): add PG011 exemptions`, `ci: pin actions by SHA`.
+- A PR adding a rule also adds it to the README index, in both languages.
+- Changing a rule's severity or detection is a breaking change for people whose merges it blocks: open an issue first, say what was wrong, and update the fixtures in the same PR. Never weaken a rule to accommodate a bad fixture; fix the fixture or add the exemption with a reason.
+
+## Decision process
+
+Decisions that shape the product are recorded as ADRs in `docs/adr/`, one file per decision, numbered, in the order they were taken. An ADR says the context, the decision, the alternatives considered, and the consequences. An ADR is never edited after it is accepted; a new ADR supersedes it. Current ADRs:
+
+| ADR | Decision |
+|---|---|
+| [0001](docs/adr/0001-runtime-javascript-action-with-wasm-parser.md) | JavaScript action on Node, PostgreSQL's parser compiled to WebAssembly |
+| [0002](docs/adr/0002-deterministic-core-optional-llm.md) | Deterministic core; LLM only explains and extends, never decides |
+| [0003](docs/adr/0003-bring-your-own-key.md) | Bring your own Anthropic key; no pr-guard server sees code |
+| [0004](docs/adr/0004-outputs-review-comments-sarif-summary.md) | Review comments plus SARIF plus job summary |
+| [0005](docs/adr/0005-name.md) | The name |
+| [0006](docs/adr/0006-license.md) | Apache-2.0 for the action and the rules |
+
+## Language and tone
+
+- Code, rules, fixtures, comments and ADRs are in **English**. The audience is global.
+- `README.md` and `README.pt-BR.md` change together: same sections, same order, same commands, same rule index. Both start with a language switcher.
+- Direct, plain, second person. "Add `CONCURRENTLY`" rather than "it is recommended to consider adding".
+- Facts come from primary sources only: postgresql.org, docs.github.com, platform.claude.com, each library's own repository. Cite the URL.
+
+## Out of scope for the MVP
+
+- Anything that needs a connection to the client's database (index usage statistics, table sizes, live lock detection). The MVP reads files in a diff.
+- MySQL, Java, Go and other packs. They come after the pilots, from the sister repositories ([docs/ROADMAP.md](docs/ROADMAP.md)).
+- Rules that need the full schema (an unindexed foreign key when the index lives in another file). They need a schema snapshot and come later.
+- Auto-fix commits. The action suggests the fix in the comment; it does not push.
+- A hosted dashboard, a GitHub App, a web UI, user accounts. The action is the product until the pilots say otherwise.
+- Support for a PostgreSQL major older than 15.

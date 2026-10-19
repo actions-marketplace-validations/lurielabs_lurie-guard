@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash scripts/validate.sh)",
+      "Bash(bash scripts/test-rules.sh)",
+      "Bash(bash scripts/test-fixtures.sh)",
+      "Bash(bash scripts/check-freshness.sh)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)"
+    ]
+  }
+}

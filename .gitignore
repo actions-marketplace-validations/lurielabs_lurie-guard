@@ -1,0 +1,21 @@
+# Local agent settings and internal decisions (never committed)
+CLAUDE.local.md
+.claude/settings.local.json
+docs/internal/
+
+# Node (the action runtime; see docs/adr/0001-runtime.md)
+node_modules/
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# Eval, benchmark and fixture run output
+evals/results/
+benchmarks/**/results/
+*.log
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
