@@ -1,0 +1,2095 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SARIF > matches the snapshot 1`] = `
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "automationDetails": {
+        "id": "lurie-guard/pg/",
+      },
+      "columnKind": "utf16CodeUnits",
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "db/migrate/20261019120000_add_index.rb",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 3,
+                  "startLine": 3,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`CREATE INDEX CONCURRENTLY\` cannot run inside a transaction block: PostgreSQL rejects it with SQLSTATE \`25001\` and the migration fails. This statement runs in a file rails wraps in a transaction. Fix: Rails: call \`disable_ddl_transaction!\` in the migration class. No exception: the statement never works inside a transaction. (PG003, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/good/test.sql#L129-L131))",
+            "text": "\`CREATE INDEX CONCURRENTLY\` cannot run inside a transaction block: PostgreSQL rejects it with SQLSTATE \`25001\` and the migration fails. This statement runs in a file rails wraps in a transaction. Fix: Rails: call \`disable_ddl_transaction!\` in the migration class. No exception: the statement never works inside a transaction. (PG003, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/good/test.sql#L129-L131)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "64732e7ab494e2e960586bec099893fc",
+            "primaryLocationLineHash": "7d0d41f148f46ef0:1",
+          },
+          "ruleId": "PG003",
+          "ruleIndex": 2,
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 2,
+                  "startLine": 2,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run \`SET lock_timeout = '2s'\` (or \`SET LOCAL\` inside the transaction) before the first DDL and retry on SQLSTATE \`55P03\`. Not needed when your migration runner sets \`lock_timeout\` for every session: say so with \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\`. (PG004, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49))",
+            "text": "\`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run \`SET lock_timeout = '2s'\` (or \`SET LOCAL\` inside the transaction) before the first DDL and retry on SQLSTATE \`55P03\`. Not needed when your migration runner sets \`lock_timeout\` for every session: say so with \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\`. (PG004, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "bd03d7a4b81dbcce4bc8487c8bca0a66",
+            "primaryLocationLineHash": "f30b1327aac8725d:1",
+          },
+          "ruleId": "PG004",
+          "ruleIndex": 3,
+          "suppressions": [
+            {
+              "justification": "the runner sets lock_timeout through ALTER ROLE",
+              "kind": "inSource",
+            },
+          ],
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 2,
+                  "startLine": 2,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`ADD COLUMN sku ... NOT NULL\` without a default fails on any table that has rows: nothing fills the existing rows of \`orders\`, so PostgreSQL rejects the statement with SQLSTATE \`23502\` and the migration aborts. Add it with a constant default (\`NOT NULL DEFAULT <constant>\`: metadata-only, no rewrite), or add it nullable, backfill in batches, then \`SET NOT NULL\` through a validated \`CHECK\` (PG007). Not needed if \`orders\` is new in this release or empty. (PG006, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L117-L123))",
+            "text": "\`ADD COLUMN sku ... NOT NULL\` without a default fails on any table that has rows: nothing fills the existing rows of \`orders\`, so PostgreSQL rejects the statement with SQLSTATE \`23502\` and the migration aborts. Add it with a constant default (\`NOT NULL DEFAULT <constant>\`: metadata-only, no rewrite), or add it nullable, backfill in batches, then \`SET NOT NULL\` through a validated \`CHECK\` (PG007). Not needed if \`orders\` is new in this release or empty. (PG006, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L117-L123)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "98f939eb984677b6b159c9822df6e280",
+            "primaryLocationLineHash": "f30b1327aac8725d:1",
+          },
+          "ruleId": "PG006",
+          "ruleIndex": 5,
+        },
+        {
+          "fixes": [
+            {
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "migrations/0001_orders.sql",
+                    "uriBaseId": "%SRCROOT%",
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "endColumn": 1,
+                        "endLine": 4,
+                        "startColumn": 1,
+                        "startLine": 3,
+                      },
+                      "insertedContent": {
+                        "text": "CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);
+",
+                      },
+                    },
+                  ],
+                },
+              ],
+              "description": {
+                "text": "Replace with the online form (PG001).",
+              },
+            },
+          ],
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 3,
+                  "startLine": 3,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`CREATE INDEX\` holds a \`SHARE\` lock on \`orders\` for the whole build; every insert, update and delete on \`orders\` waits. Build it with \`CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at)\`, outside a transaction (PG003 checks that). Not needed if \`orders\` is new in this release or empty. (PG001, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L99-L104))",
+            "text": "\`CREATE INDEX\` holds a \`SHARE\` lock on \`orders\` for the whole build; every insert, update and delete on \`orders\` waits. Build it with \`CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at)\`, outside a transaction (PG003 checks that). Not needed if \`orders\` is new in this release or empty. (PG001, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L99-L104)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "0526c5c547c39fe1259ed8ea4d7ea111",
+            "primaryLocationLineHash": "4188b6466fbad44a:1",
+          },
+          "ruleId": "PG001",
+          "ruleIndex": 0,
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 5,
+                  "startLine": 4,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run \`SET lock_timeout = '2s'\` (or \`SET LOCAL\` inside the transaction) before the first DDL and retry on SQLSTATE \`55P03\`. Not needed when your migration runner sets \`lock_timeout\` for every session: say so with \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\`. (PG004, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49))",
+            "text": "\`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run \`SET lock_timeout = '2s'\` (or \`SET LOCAL\` inside the transaction) before the first DDL and retry on SQLSTATE \`55P03\`. Not needed when your migration runner sets \`lock_timeout\` for every session: say so with \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\`. (PG004, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "697b241ab30e66458bcf67681a63dc5c",
+            "primaryLocationLineHash": "1ace8f071dba3bd5:1",
+          },
+          "ruleId": "PG004",
+          "ruleIndex": 3,
+        },
+        {
+          "fixes": [
+            {
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "migrations/0001_orders.sql",
+                    "uriBaseId": "%SRCROOT%",
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "endColumn": 1,
+                        "endLine": 6,
+                        "startColumn": 1,
+                        "startLine": 4,
+                      },
+                      "insertedContent": {
+                        "text": "ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+",
+                      },
+                    },
+                  ],
+                },
+              ],
+              "description": {
+                "text": "Replace with the online form (PG008).",
+              },
+            },
+          ],
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 5,
+                  "startLine": 4,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`ADD FOREIGN KEY\` validates every row of \`orders\` while it holds \`SHARE ROW EXCLUSIVE\` on \`orders\` and on \`accounts\`: writes on both tables wait for the whole scan. Add it with \`NOT VALID\` (catalog only), then \`ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey\` in a separate transaction, which takes only \`SHARE UPDATE EXCLUSIVE\` and lets writes continue. Not needed if \`orders\` is new in this release or empty. (PG008, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L69-L85))",
+            "text": "\`ADD FOREIGN KEY\` validates every row of \`orders\` while it holds \`SHARE ROW EXCLUSIVE\` on \`orders\` and on \`accounts\`: writes on both tables wait for the whole scan. Add it with \`NOT VALID\` (catalog only), then \`ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey\` in a separate transaction, which takes only \`SHARE UPDATE EXCLUSIVE\` and lets writes continue. Not needed if \`orders\` is new in this release or empty. (PG008, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L69-L85)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "c7f21f6386c0fe5e9120a0454fa99c57",
+            "primaryLocationLineHash": "1ace8f071dba3bd5:1",
+          },
+          "ruleId": "PG008",
+          "ruleIndex": 7,
+        },
+        {
+          "fixes": [
+            {
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "migrations/0001_orders.sql",
+                    "uriBaseId": "%SRCROOT%",
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "endColumn": 1,
+                        "endLine": 11,
+                        "startColumn": 1,
+                        "startLine": 6,
+                      },
+                      "insertedContent": {
+                        "text": "CREATE TABLE customers (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email varchar(20),
+  created_at timestamp
+);
+",
+                      },
+                    },
+                  ],
+                },
+              ],
+              "description": {
+                "text": "Replace with the online form (PG017).",
+              },
+            },
+          ],
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 7,
+                  "startLine": 7,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`id serial PRIMARY KEY\` on \`customers\` is a 4-byte key with a separate sequence: it stops at 2147483647 (inserts then fail with SQLSTATE \`2200H\`), and moving to \`bigint\` later rewrites the whole table. Declare it \`id bigint GENERATED ALWAYS AS IDENTITY\`: 4 more bytes per row, never runs out, and the SQL-standard identity refuses hand-written ids. Not needed for a small lookup table that cannot reach 2 billion rows; suppress with that reason. (PG017, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L29-L37))",
+            "text": "\`id serial PRIMARY KEY\` on \`customers\` is a 4-byte key with a separate sequence: it stops at 2147483647 (inserts then fail with SQLSTATE \`2200H\`), and moving to \`bigint\` later rewrites the whole table. Declare it \`id bigint GENERATED ALWAYS AS IDENTITY\`: 4 more bytes per row, never runs out, and the SQL-standard identity refuses hand-written ids. Not needed for a small lookup table that cannot reach 2 billion rows; suppress with that reason. (PG017, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L29-L37)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "d56ec5cc4fa760eb03f483e44f5993a5",
+            "primaryLocationLineHash": "0bcf72b9fd5fd457:1",
+          },
+          "ruleId": "PG017",
+          "ruleIndex": 16,
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 8,
+                  "startLine": 8,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`email varchar(20)\` on \`customers\` enforces only a maximum: it still accepts \`''\`, an explicit cast silently truncates to 20 characters, and shrinking the limit later rewrites the table. Declare it \`text\` with a named check, \`CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 1 AND 20)\`, which states the real rule and can be changed with \`NOT VALID\` then \`VALIDATE\` and no rewrite. Not needed when the limit is a real business rule the team keeps deliberately, or for fixed-length codes from a standard (then prefer \`text\` with a regular-expression check). (PG021, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L39-L52))",
+            "text": "\`email varchar(20)\` on \`customers\` enforces only a maximum: it still accepts \`''\`, an explicit cast silently truncates to 20 characters, and shrinking the limit later rewrites the table. Declare it \`text\` with a named check, \`CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 1 AND 20)\`, which states the real rule and can be changed with \`NOT VALID\` then \`VALIDATE\` and no rewrite. Not needed when the limit is a real business rule the team keeps deliberately, or for fixed-length codes from a standard (then prefer \`text\` with a regular-expression check). (PG021, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L39-L52)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "a49c8c5368b691f1ad26c261bca782cc",
+            "primaryLocationLineHash": "3203a6ef722d1142:1",
+          },
+          "ruleId": "PG021",
+          "ruleIndex": 20,
+        },
+        {
+          "fixes": [
+            {
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "migrations/0001_orders.sql",
+                    "uriBaseId": "%SRCROOT%",
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "endColumn": 1,
+                        "endLine": 11,
+                        "startColumn": 1,
+                        "startLine": 6,
+                      },
+                      "insertedContent": {
+                        "text": "CREATE TABLE customers (
+  id serial PRIMARY KEY,
+  email varchar(20),
+  created_at timestamptz
+);
+",
+                      },
+                    },
+                  ],
+                },
+              ],
+              "description": {
+                "text": "Replace with the online form (PG019).",
+              },
+            },
+          ],
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "migrations/0001_orders.sql",
+                  "uriBaseId": "%SRCROOT%",
+                },
+                "region": {
+                  "endLine": 9,
+                  "startLine": 9,
+                },
+              },
+            },
+          ],
+          "message": {
+            "markdown": "\`created_at timestamp\` on \`customers\` is a timestamp without time zone: PostgreSQL "silently ignore[s] any time zone indication" on input, so the same instant written from two sessions with different \`TimeZone\` settings is stored as two values (12 hours apart in the db-skills test). Declare it \`timestamptz\`: stored as UTC, same 8 bytes, converted on output to the session's zone. Not needed for a wall-clock value that is deliberately zone-free (a store's opening time, a recurring local alarm); suppress with that reason. (PG019, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L54-L61))",
+            "text": "\`created_at timestamp\` on \`customers\` is a timestamp without time zone: PostgreSQL "silently ignore[s] any time zone indication" on input, so the same instant written from two sessions with different \`TimeZone\` settings is stored as two values (12 hours apart in the db-skills test). Declare it \`timestamptz\`: stored as UTC, same 8 bytes, converted on output to the session's zone. Not needed for a wall-clock value that is deliberately zone-free (a store's opening time, a recurring local alarm); suppress with that reason. (PG019, evidence: https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L54-L61)",
+          },
+          "partialFingerprints": {
+            "lurie-guard/v1": "9bc31fc1b14f87db8c9258034f2df3ea",
+            "primaryLocationLineHash": "39c7be7e85714af9:1",
+          },
+          "ruleId": "PG019",
+          "ruleIndex": 18,
+        },
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/lurielabs/lurie-guard",
+          "name": "lurie-guard",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`CREATE INDEX\` or \`CREATE UNIQUE INDEX\` without \`CONCURRENTLY\`, on a table that is not created in the same migration set (this file plus every other added migration file of the PR).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`CREATE INDEX\` or \`CREATE UNIQUE INDEX\` without \`CONCURRENTLY\`, on a table that is not created in the same migration set (this file plus every other added migration file of the PR).
+
+## Why it matters
+
+A plain \`CREATE INDEX\` "locks out writes (but not reads) on the table until it's done" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills bad example shows \`pg_locks\` for the session running \`CREATE INDEX orders_created_at_idx ON orders (created_at)\`: it holds \`ShareLock\` on \`orders\` for the whole build, and \`SHARE\` conflicts with the \`ROW EXCLUSIVE\` lock every \`INSERT\`, \`UPDATE\` and \`DELETE\` needs. On a table with traffic, every write waits for as long as the build takes.
+
+## The fix
+
+\`\`\`sql
+CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);
+\`\`\`
+
+Run it outside a transaction block (PG003 checks that). If the build fails, drop the invalid index with \`DROP INDEX CONCURRENTLY IF EXISTS\` and build again; never retry with \`IF NOT EXISTS\` (PG016).
+
+## When it does not apply
+
+- The table is created in the same migration set (\`CREATE TABLE\` in this file or in another added migration file of the PR): nothing reads it yet, so the lock costs nothing. The detector tracks the created tables across the PR.
+- The statement already says \`CONCURRENTLY\`.
+- A partitioned parent table: \`CREATE INDEX CONCURRENTLY\` is not supported on the parent, so the documented way is to build the index concurrently on each partition and then create the parent index without \`CONCURRENTLY\`. The detector cannot see that a table is partitioned; suppress with a reason that says so.
+- An empty table or an agreed maintenance window: suppress with a reason (\`-- lurie-guard: ignore PG001 reason="..."\`).",
+                "text": " What it detects
+
+CREATE INDEX or CREATE UNIQUE INDEX without CONCURRENTLY, on a table that is not created in the same migration set (this file plus every other added migration file of the PR).
+
+ Why it matters
+
+A plain CREATE INDEX "locks out writes (but not reads) on the table until it's done" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills bad example shows pg_locks for the session running CREATE INDEX orders_created_at_idx ON orders (created_at): it holds ShareLock on orders for the whole build, and SHARE conflicts with the ROW EXCLUSIVE lock every INSERT, UPDATE and DELETE needs. On a table with traffic, every write waits for as long as the build takes.
+
+ The fix
+
+sql
+CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);
+
+
+Run it outside a transaction block (PG003 checks that). If the build fails, drop the invalid index with DROP INDEX CONCURRENTLY IF EXISTS and build again; never retry with IF NOT EXISTS (PG016).
+
+ When it does not apply
+
+- The table is created in the same migration set (CREATE TABLE in this file or in another added migration file of the PR): nothing reads it yet, so the lock costs nothing. The detector tracks the created tables across the PR.
+- The statement already says CONCURRENTLY.
+- A partitioned parent table: CREATE INDEX CONCURRENTLY is not supported on the parent, so the documented way is to build the index concurrently on each partition and then create the parent index without CONCURRENTLY. The detector cannot see that a table is partitioned; suppress with a reason that says so.
+- An empty table or an agreed maintenance window: suppress with a reason (-- lurie-guard: ignore PG001 reason="...").",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG001-create-index-not-concurrently/RULE.md",
+              "id": "PG001",
+              "name": "create-index-not-concurrently",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG001: \`CREATE INDEX\` without \`CONCURRENTLY\` on an existing table",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`DROP INDEX\` without \`CONCURRENTLY\`, where the index is not created in the same migration set (a \`CREATE INDEX\` or a \`UNIQUE\`/\`PRIMARY KEY\` constraint of that name in this file or in another added migration file of the PR).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`DROP INDEX\` without \`CONCURRENTLY\`, where the index is not created in the same migration set (a \`CREATE INDEX\` or a \`UNIQUE\`/\`PRIMARY KEY\` constraint of that name in this file or in another added migration file of the PR).
+
+## Why it matters
+
+"A normal \`DROP INDEX\` acquires an exclusive lock on the table, blocking other accesses until the index drop can be completed" ([DROP INDEX](https://www.postgresql.org/docs/18/sql-dropindex.html)). The db-skills bad example drops \`orders_created_at_idx\` inside a transaction and shows \`pg_locks\` for the session: \`AccessExclusiveLock\` on \`orders\`, the table, not only on the index. A plain \`SELECT count(*) FROM orders\` from another session with \`lock_timeout = 200ms\` fails with SQLSTATE \`55P03\` behind it. In production the drop itself first queues behind every running query on the table, and from then on every new query queues behind the drop.
+
+## The fix
+
+\`\`\`sql
+DROP INDEX CONCURRENTLY orders_created_at_idx;
+\`\`\`
+
+\`DROP INDEX CONCURRENTLY\` "waits until conflicting transactions have completed" instead of blocking them. It takes one index name per statement, cannot run inside a transaction block (PG003 checks that), and does not support \`CASCADE\`.
+
+## When it does not apply
+
+- The index is created in the same migration set (a failed build being retried, or an index the PR itself adds and removes): nothing uses it yet. The detector tracks index names created by \`CREATE INDEX\` and by \`UNIQUE\`/\`PRIMARY KEY\` constraints across the added files.
+- The statement already says \`CONCURRENTLY\`.
+- An index on a partitioned table: "indexes on partitioned tables cannot be dropped using this option". Suppress with a reason that says so.",
+                "text": " What it detects
+
+DROP INDEX without CONCURRENTLY, where the index is not created in the same migration set (a CREATE INDEX or a UNIQUE/PRIMARY KEY constraint of that name in this file or in another added migration file of the PR).
+
+ Why it matters
+
+"A normal DROP INDEX acquires an exclusive lock on the table, blocking other accesses until the index drop can be completed" ([DROP INDEX](https://www.postgresql.org/docs/18/sql-dropindex.html)). The db-skills bad example drops orders_created_at_idx inside a transaction and shows pg_locks for the session: AccessExclusiveLock on orders, the table, not only on the index. A plain SELECT count() FROM orders from another session with lock_timeout = 200ms fails with SQLSTATE 55P03 behind it. In production the drop itself first queues behind every running query on the table, and from then on every new query queues behind the drop.
+
+ The fix
+
+sql
+DROP INDEX CONCURRENTLY orders_created_at_idx;
+
+
+DROP INDEX CONCURRENTLY "waits until conflicting transactions have completed" instead of blocking them. It takes one index name per statement, cannot run inside a transaction block (PG003 checks that), and does not support CASCADE.
+
+ When it does not apply
+
+- The index is created in the same migration set (a failed build being retried, or an index the PR itself adds and removes): nothing uses it yet. The detector tracks index names created by CREATE INDEX and by UNIQUE/PRIMARY KEY constraints across the added files.
+- The statement already says CONCURRENTLY.
+- An index on a partitioned table: "indexes on partitioned tables cannot be dropped using this option". Suppress with a reason that says so.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG002-drop-index-not-concurrently/RULE.md",
+              "id": "PG002",
+              "name": "drop-index-not-concurrently",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG002: \`DROP INDEX\` without \`CONCURRENTLY\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`CREATE INDEX CONCURRENTLY\`, \`DROP INDEX CONCURRENTLY\`, \`REINDEX ... CONCURRENTLY\` or \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` inside an explicit \`BEGIN\` block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
+
+## Why it matters
+
+\`CREATE INDEX CONCURRENTLY\` "cannot" run "within a transaction block" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills good example runs it from inside a function, which is a transaction block, and asserts SQLSTATE \`25001\` (\`active_sql_transaction\`). The migration fails at deploy time, and in most frameworks the failed migration leaves the deploy half done.
+
+## The fix
+
+Run the statement outside a transaction. How depends on the framework:
+
+\`\`\`text
+Flyway     <file>.sql.conf with executeInTransaction=false
+Liquibase  --changeset author:id runInTransaction:false
+Rails      disable_ddl_transaction! in the migration class
+Django     atomic = False on the Migration class
+Alembic    with op.get_context().autocommit_block():
+dbmate     -- migrate:up transaction:false
+Prisma     no opt-out: run it outside Prisma Migrate
+Plain SQL  move it outside the BEGIN ... COMMIT block
+\`\`\`
+
+## When it does not apply
+
+- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or \`transaction: never\` in \`.lurie-guard.yml\`), a Flyway migration with \`executeInTransaction=false\`, a Rails migration with \`disable_ddl_transaction!\`, a Django migration with \`atomic = False\`, an Alembic step in \`autocommit_block()\`, a dbmate section with \`transaction:false\`, a Liquibase changeset with \`runInTransaction:false\`.
+- The statement is outside the explicit \`BEGIN\` ... \`COMMIT\` block of the file.",
+                "text": " What it detects
+
+CREATE INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY, REINDEX ... CONCURRENTLY or REFRESH MATERIALIZED VIEW CONCURRENTLY inside an explicit BEGIN block, or in a file that the migration framework wraps in a transaction without the framework's opt-out (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch; see the table in [SPEC-MVP.md](../../../docs/SPEC-MVP.md)).
+
+ Why it matters
+
+CREATE INDEX CONCURRENTLY "cannot" run "within a transaction block" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). The db-skills good example runs it from inside a function, which is a transaction block, and asserts SQLSTATE 25001 (active_sql_transaction). The migration fails at deploy time, and in most frameworks the failed migration leaves the deploy half done.
+
+ The fix
+
+Run the statement outside a transaction. How depends on the framework:
+
+text
+Flyway     <file.sql.conf with executeInTransaction=false
+Liquibase  --changeset author:id runInTransaction:false
+Rails      disable_ddl_transaction! in the migration class
+Django     atomic = False on the Migration class
+Alembic    with op.get_context().autocommit_block():
+dbmate     -- migrate:up transaction:false
+Prisma     no opt-out: run it outside Prisma Migrate
+Plain SQL  move it outside the BEGIN ... COMMIT block
+
+
+ When it does not apply
+
+- The file is not wrapped: a plain SQL folder run statement by statement (golang-migrate, or transaction: never in .lurie-guard.yml), a Flyway migration with executeInTransaction=false, a Rails migration with disable_ddl_transaction!, a Django migration with atomic = False, an Alembic step in autocommit_block(), a dbmate section with transaction:false, a Liquibase changeset with runInTransaction:false.
+- The statement is outside the explicit BEGIN ... COMMIT block of the file.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG003-concurrently-inside-transaction/RULE.md",
+              "id": "PG003",
+              "name": "concurrently-inside-transaction",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG003: \`CONCURRENTLY\` inside a transaction",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, \`DROP TABLE\`, \`DROP INDEX\` without \`CONCURRENTLY\`, \`TRUNCATE\`, \`CLUSTER\`) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A statement that takes an \`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\` lock on an existing table (\`ALTER TABLE\` other than \`VALIDATE CONSTRAINT\` alone, \`DROP TABLE\`, \`DROP INDEX\` without \`CONCURRENTLY\`, \`TRUNCATE\`, \`CLUSTER\`) when no \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file, and the config does not say the runner sets it (\`lock_timeout_set_by_runner: true\`).
+
+## Why it matters
+
+\`lock_timeout\` defaults to \`0\`, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.html#GUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's \`ACCESS SHARE\` lock on \`orders\` in one session and runs \`ALTER TABLE orders ADD COLUMN note text\` in another: the \`ALTER\` queues for its \`ACCESS EXCLUSIVE\` lock, and a plain \`SELECT count(*) FROM orders WHERE id = 1\` that arrives next is blocked behind the waiting \`ALTER\` (it fails with \`55P03\` after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets \`lock_timeout = '1s'\`: the \`ALTER\` fails fast with \`55P03\`, traffic keeps flowing, and the retry after the report commits succeeds at once.
+
+## The fix
+
+\`\`\`sql
+SET lock_timeout = '2s';   -- a few seconds; the docs give no figure
+ALTER TABLE orders ADD COLUMN note text;
+-- retry the step on SQLSTATE 55P03 with backoff
+\`\`\`
+
+Inside a transaction, \`SET LOCAL lock_timeout\` scopes it to that transaction. Commit each heavy-lock step on its own; locks are held until the end of the transaction.
+
+## When it does not apply
+
+- \`SET lock_timeout\` or \`SET LOCAL lock_timeout\` with a non-zero value appears earlier in the file; \`SET lock_timeout = 0\` and \`RESET lock_timeout\` turn the timeout off again.
+- The migration runner sets \`lock_timeout\` for every session (a connection option, \`ALTER ROLE ... SET lock_timeout\`, Rails' \`config.active_record.postgresql_adapter...\`, a Flyway \`initSql\`): set \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\` and the rule is silent.
+- The table is created in the same migration set.
+- An \`ALTER TABLE\` whose only subcommand is \`VALIDATE CONSTRAINT\` takes \`SHARE UPDATE EXCLUSIVE\`, which does not block reads or writes.",
+                "text": " What it detects
+
+A statement that takes an ACCESS EXCLUSIVE or SHARE ROW EXCLUSIVE lock on an existing table (ALTER TABLE other than VALIDATE CONSTRAINT alone, DROP TABLE, DROP INDEX without CONCURRENTLY, TRUNCATE, CLUSTER) when no SET lock_timeout or SET LOCAL lock_timeout with a non-zero value appears earlier in the file, and the config does not say the runner sets it (lock_timeout_set_by_runner: true).
+
+ Why it matters
+
+lock_timeout defaults to 0, which disables it, and "a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html), [lock_timeout](https://www.postgresql.org/docs/18/runtime-config-client.htmlGUC-LOCK-TIMEOUT)). The db-skills bad example holds a report's ACCESS SHARE lock on orders in one session and runs ALTER TABLE orders ADD COLUMN note text in another: the ALTER queues for its ACCESS EXCLUSIVE lock, and a plain SELECT count() FROM orders WHERE id = 1 that arrives next is blocked behind the waiting ALTER (it fails with 55P03 after the 500 ms the test allows it). In production that read hangs for as long as the report runs. The good example sets lock_timeout = '1s': the ALTER fails fast with 55P03, traffic keeps flowing, and the retry after the report commits succeeds at once.
+
+ The fix
+
+sql
+SET lock_timeout = '2s';   -- a few seconds; the docs give no figure
+ALTER TABLE orders ADD COLUMN note text;
+-- retry the step on SQLSTATE 55P03 with backoff
+
+
+Inside a transaction, SET LOCAL lock_timeout scopes it to that transaction. Commit each heavy-lock step on its own; locks are held until the end of the transaction.
+
+ When it does not apply
+
+- SET lock_timeout or SET LOCAL lock_timeout with a non-zero value appears earlier in the file; SET lock_timeout = 0 and RESET lock_timeout turn the timeout off again.
+- The migration runner sets lock_timeout for every session (a connection option, ALTER ROLE ... SET lock_timeout, Rails' config.active_record.postgresql_adapter..., a Flyway initSql): set lock_timeout_set_by_runner: true in .lurie-guard.yml and the rule is silent.
+- The table is created in the same migration set.
+- An ALTER TABLE whose only subcommand is VALIDATE CONSTRAINT takes SHARE UPDATE EXCLUSIVE, which does not block reads or writes.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG004-ddl-without-lock-timeout/RULE.md",
+              "id": "PG004",
+              "name": "ddl-without-lock-timeout",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG004: DDL that takes a heavy lock without \`SET lock_timeout\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ADD COLUMN\` on an existing table with a volatile \`DEFAULT\` (\`clock_timestamp()\`, \`random()\`, \`gen_random_uuid()\`, \`uuidv7()\`, \`nextval()\`, a subquery, or any function not in the detector's list of built-in stable and immutable functions), a \`GENERATED ... STORED\` column, or a \`GENERATED ... AS IDENTITY\` column.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ADD COLUMN\` on an existing table with a volatile \`DEFAULT\` (\`clock_timestamp()\`, \`random()\`, \`gen_random_uuid()\`, \`uuidv7()\`, \`nextval()\`, a subquery, or any function not in the detector's list of built-in stable and immutable functions), a \`GENERATED ... STORED\` column, or a \`GENERATED ... AS IDENTITY\` column.
+
+## Why it matters
+
+"Adding a column with a volatile \`DEFAULT\` (e.g., \`clock_timestamp()\`), a stored generated column, an identity column, or a column with a domain data type that has constraints will cause the entire table and its indexes to be rewritten" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)). The db-skills bad example adds \`created_at timestamptz NOT NULL DEFAULT clock_timestamp()\` to \`orders\` (100,000 rows) and asserts that \`pg_relation_filenode('orders')\` and \`pg_relation_filenode('orders_pkey')\` both change: a full copy of the table and its indexes, under \`ACCESS EXCLUSIVE\`, which blocks reads and writes for the whole copy and "temporarily require[s] as much as double the disk space". A constant default is metadata-only: the good example adds \`status text NOT NULL DEFAULT 'new'\` and the filenode stays.
+
+## The fix
+
+\`\`\`sql
+ALTER TABLE orders ADD COLUMN created_at timestamptz;
+ALTER TABLE orders ALTER COLUMN created_at SET DEFAULT clock_timestamp();  -- new rows only
+-- backfill the existing rows in batches, each batch its own transaction
+-- then, if the column must be NOT NULL: the validated-CHECK path (PG007)
+\`\`\`
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- The default is a constant or a call to a stable or immutable built-in (\`now()\`, \`current_timestamp\`, \`lower(...)\`, \`coalesce(...)\`): PostgreSQL evaluates it once and stores it in the metadata, no rewrite.
+- A user-defined function marked \`IMMUTABLE\` or \`STABLE\`: the detector cannot see function volatility from the diff, so it treats unknown functions as volatile; suppress with a reason that names the function's volatility.
+- A domain type with constraints also rewrites the table, but the detector cannot see domain definitions; not detected.",
+                "text": " What it detects
+
+ALTER TABLE ... ADD COLUMN on an existing table with a volatile DEFAULT (clock_timestamp(), random(), gen_random_uuid(), uuidv7(), nextval(), a subquery, or any function not in the detector's list of built-in stable and immutable functions), a GENERATED ... STORED column, or a GENERATED ... AS IDENTITY column.
+
+ Why it matters
+
+"Adding a column with a volatile DEFAULT (e.g., clock_timestamp()), a stored generated column, an identity column, or a column with a domain data type that has constraints will cause the entire table and its indexes to be rewritten" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)). The db-skills bad example adds created_at timestamptz NOT NULL DEFAULT clock_timestamp() to orders (100,000 rows) and asserts that pg_relation_filenode('orders') and pg_relation_filenode('orders_pkey') both change: a full copy of the table and its indexes, under ACCESS EXCLUSIVE, which blocks reads and writes for the whole copy and "temporarily require[s] as much as double the disk space". A constant default is metadata-only: the good example adds status text NOT NULL DEFAULT 'new' and the filenode stays.
+
+ The fix
+
+sql
+ALTER TABLE orders ADD COLUMN created_at timestamptz;
+ALTER TABLE orders ALTER COLUMN created_at SET DEFAULT clock_timestamp();  -- new rows only
+-- backfill the existing rows in batches, each batch its own transaction
+-- then, if the column must be NOT NULL: the validated-CHECK path (PG007)
+
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- The default is a constant or a call to a stable or immutable built-in (now(), current_timestamp, lower(...), coalesce(...)): PostgreSQL evaluates it once and stores it in the metadata, no rewrite.
+- A user-defined function marked IMMUTABLE or STABLE: the detector cannot see function volatility from the diff, so it treats unknown functions as volatile; suppress with a reason that names the function's volatility.
+- A domain type with constraints also rewrites the table, but the detector cannot see domain definitions; not detected.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG005-add-column-rewrites-table/RULE.md",
+              "id": "PG005",
+              "name": "add-column-rewrites-table",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG005: \`ADD COLUMN\` that rewrites the table",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ADD COLUMN ... NOT NULL\` with no \`DEFAULT\`, no identity, no generated expression and not a \`serial\` type, on a table that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ADD COLUMN ... NOT NULL\` with no \`DEFAULT\`, no identity, no generated expression and not a \`serial\` type, on a table that is not created in the same migration set.
+
+## Why it matters
+
+Nothing gives the existing rows a value, so the statement cannot succeed on a table with rows. The db-skills bad example runs \`ALTER TABLE orders ADD COLUMN sku text NOT NULL\` on the 100,000-row \`orders\` and asserts SQLSTATE \`23502\` (\`not_null_violation\`, "column contains null values"): the migration aborts at deploy time, after taking \`ACCESS EXCLUSIVE\` on the table to find that out. It passes on the empty database of the test suite, which is why it reaches review. With a constant default the column is metadata-only: "the default value is evaluated at the time of the statement and the result stored in the table's metadata" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); the good example adds \`status text NOT NULL DEFAULT 'new'\` and the filenode stays.
+
+## The fix
+
+\`\`\`sql
+ALTER TABLE orders ADD COLUMN sku text NOT NULL DEFAULT 'unknown';
+\`\`\`
+
+Or, when no constant makes sense: add it nullable, backfill in batches, then make it \`NOT NULL\` through a validated \`CHECK\` (PG007).
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- The column has a \`DEFAULT\` (a volatile one is PG005), is an identity column, a generated column or a \`serial\`: each gives every row a value (identity and generated rewrite the table, PG005).
+- The column is a \`PRIMARY KEY\` in the same clause: the key fails for other reasons on a non-empty table (PG012 and PG017 apply).",
+                "text": " What it detects
+
+ALTER TABLE ... ADD COLUMN ... NOT NULL with no DEFAULT, no identity, no generated expression and not a serial type, on a table that is not created in the same migration set.
+
+ Why it matters
+
+Nothing gives the existing rows a value, so the statement cannot succeed on a table with rows. The db-skills bad example runs ALTER TABLE orders ADD COLUMN sku text NOT NULL on the 100,000-row orders and asserts SQLSTATE 23502 (not_null_violation, "column contains null values"): the migration aborts at deploy time, after taking ACCESS EXCLUSIVE on the table to find that out. It passes on the empty database of the test suite, which is why it reaches review. With a constant default the column is metadata-only: "the default value is evaluated at the time of the statement and the result stored in the table's metadata" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); the good example adds status text NOT NULL DEFAULT 'new' and the filenode stays.
+
+ The fix
+
+sql
+ALTER TABLE orders ADD COLUMN sku text NOT NULL DEFAULT 'unknown';
+
+
+Or, when no constant makes sense: add it nullable, backfill in batches, then make it NOT NULL through a validated CHECK (PG007).
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- The column has a DEFAULT (a volatile one is PG005), is an identity column, a generated column or a serial: each gives every row a value (identity and generated rewrite the table, PG005).
+- The column is a PRIMARY KEY in the same clause: the key fails for other reasons on a non-empty table (PG012 and PG017 apply).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG006-add-column-not-null-without-default/RULE.md",
+              "id": "PG006",
+              "name": "add-column-not-null-without-default",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG006: \`ADD COLUMN ... NOT NULL\` without a default on an existing table",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ALTER COLUMN ... SET NOT NULL\` on an existing table, when no \`CHECK (col IS NOT NULL)\` constraint on that column was added and validated earlier in the migration set. With \`postgres_version: 18\` or above in \`.lurie-guard.yml\`, a \`NOT NULL ... NOT VALID\` constraint on the column that was then validated also satisfies the rule.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ALTER COLUMN ... SET NOT NULL\` on an existing table, when no \`CHECK (col IS NOT NULL)\` constraint on that column was added and validated earlier in the migration set. With \`postgres_version: 18\` or above in \`.lurie-guard.yml\`, a \`NOT NULL ... NOT VALID\` constraint on the column that was then validated also satisfies the rule.
+
+## Why it matters
+
+\`SET NOT NULL\` scans the whole table under \`ACCESS EXCLUSIVE\`; "however, if a valid \`CHECK\` constraint exists (and is not dropped in the same command) which proves no \`NULL\` can exist, then the table scan is skipped" ([ALTER TABLE 15](https://www.postgresql.org/docs/15/sql-altertable.html)). The db-skills examples count sequential scans of \`orders\` inside the transaction: the bare \`SET NOT NULL\` adds one scan of the 100,000 rows while \`pg_locks\` shows \`AccessExclusiveLock\` on \`orders\` (bad example); after a validated check, zero scans (good example). The \`VALIDATE CONSTRAINT\` step takes only \`SHARE UPDATE EXCLUSIVE\`, so writes continue while it scans. On PostgreSQL 18 the not-null constraint itself can be added \`NOT VALID\` and validated under the same weak lock, after which \`pg_attribute.attnotnull\` is true.
+
+## The fix
+
+PostgreSQL 15 to 17:
+
+\`\`\`sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_not_null CHECK (amount IS NOT NULL) NOT VALID;  -- catalog only, commit at once
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_not_null;  -- separate transaction, writes continue
+ALTER TABLE orders ALTER COLUMN amount SET NOT NULL;  -- skips the scan
+ALTER TABLE orders DROP CONSTRAINT orders_amount_not_null;
+\`\`\`
+
+PostgreSQL 18:
+
+\`\`\`sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_not_null NOT NULL amount NOT VALID;
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_not_null;
+\`\`\`
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- A \`CHECK (col IS NOT NULL)\` on the column was added (with or without \`NOT VALID\`) and validated earlier in this file or in an earlier added file of the PR. The detector tracks constraints by name across \`ADD CONSTRAINT\` and \`VALIDATE CONSTRAINT\`.
+- \`postgres_version: 18\` or above, and a \`NOT NULL ... NOT VALID\` constraint on the column was validated earlier. On the default \`postgres_version: 15\` that path is reported, because the syntax does not exist there.
+- A \`NOT NULL\` added together with the column (\`ADD COLUMN ... NOT NULL DEFAULT ...\`) is not this statement shape (PG006 covers it).",
+                "text": " What it detects
+
+ALTER TABLE ... ALTER COLUMN ... SET NOT NULL on an existing table, when no CHECK (col IS NOT NULL) constraint on that column was added and validated earlier in the migration set. With postgres_version: 18 or above in .lurie-guard.yml, a NOT NULL ... NOT VALID constraint on the column that was then validated also satisfies the rule.
+
+ Why it matters
+
+SET NOT NULL scans the whole table under ACCESS EXCLUSIVE; "however, if a valid CHECK constraint exists (and is not dropped in the same command) which proves no NULL can exist, then the table scan is skipped" ([ALTER TABLE 15](https://www.postgresql.org/docs/15/sql-altertable.html)). The db-skills examples count sequential scans of orders inside the transaction: the bare SET NOT NULL adds one scan of the 100,000 rows while pg_locks shows AccessExclusiveLock on orders (bad example); after a validated check, zero scans (good example). The VALIDATE CONSTRAINT step takes only SHARE UPDATE EXCLUSIVE, so writes continue while it scans. On PostgreSQL 18 the not-null constraint itself can be added NOT VALID and validated under the same weak lock, after which pg_attribute.attnotnull is true.
+
+ The fix
+
+PostgreSQL 15 to 17:
+
+sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_not_null CHECK (amount IS NOT NULL) NOT VALID;  -- catalog only, commit at once
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_not_null;  -- separate transaction, writes continue
+ALTER TABLE orders ALTER COLUMN amount SET NOT NULL;  -- skips the scan
+ALTER TABLE orders DROP CONSTRAINT orders_amount_not_null;
+
+
+PostgreSQL 18:
+
+sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_not_null NOT NULL amount NOT VALID;
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_not_null;
+
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- A CHECK (col IS NOT NULL) on the column was added (with or without NOT VALID) and validated earlier in this file or in an earlier added file of the PR. The detector tracks constraints by name across ADD CONSTRAINT and VALIDATE CONSTRAINT.
+- postgres_version: 18 or above, and a NOT NULL ... NOT VALID constraint on the column was validated earlier. On the default postgres_version: 15 that path is reported, because the syntax does not exist there.
+- A NOT NULL added together with the column (ADD COLUMN ... NOT NULL DEFAULT ...) is not this statement shape (PG006 covers it).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG007-set-not-null-without-check/RULE.md",
+              "id": "PG007",
+              "name": "set-not-null-without-check",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG007: \`SET NOT NULL\` without a validated \`CHECK (col IS NOT NULL)\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ADD [CONSTRAINT name] FOREIGN KEY (...) REFERENCES ...\` without \`NOT VALID\`, on a table that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ADD [CONSTRAINT name] FOREIGN KEY (...) REFERENCES ...\` without \`NOT VALID\`, on a table that is not created in the same migration set.
+
+## Why it matters
+
+\`ADD FOREIGN KEY\` takes \`SHARE ROW EXCLUSIVE\` on the table and on the referenced table ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and in one step it also validates every existing row under that lock. The db-skills bad example adds \`orders_account_id_fkey\` on the 100,000-row \`orders\` inside a transaction and asserts that the statement scanned \`orders\` (\`xact_seq_scans\` grows), that \`pg_locks\` shows \`ShareRowExclusiveLock\` on \`accounts\` as well, and that an \`INSERT INTO accounts\` from another session fails with \`55P03\`: a signup is blocked by a migration on \`orders\`. With \`NOT VALID\` the same lock is held only for the catalog change; \`VALIDATE CONSTRAINT\` then "acquires a \`SHARE UPDATE EXCLUSIVE\` lock" and a \`ROW SHARE\` lock on the referenced table, so it "does not need to lock out concurrent updates" (good example, \`pg_locks\` asserted).
+
+## The fix
+
+\`\`\`sql
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+-- separate transaction (a separate migration where the tool wraps files):
+ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey;
+\`\`\`
+
+## When it does not apply
+
+- The table is created in the same migration set: no rows to validate.
+- The constraint already says \`NOT VALID\` (PG010 then checks that the \`VALIDATE\` is not in the same transaction).
+- A column-level \`REFERENCES\` inside \`ADD COLUMN\`: the new column is all \`NULL\`, so there is nothing to validate; not this statement shape.
+- Partitioned tables need PostgreSQL 18 or above for \`NOT VALID\` foreign keys; on older majors, suppress with a reason.",
+                "text": " What it detects
+
+ALTER TABLE ... ADD [CONSTRAINT name] FOREIGN KEY (...) REFERENCES ... without NOT VALID, on a table that is not created in the same migration set.
+
+ Why it matters
+
+ADD FOREIGN KEY takes SHARE ROW EXCLUSIVE on the table and on the referenced table ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and in one step it also validates every existing row under that lock. The db-skills bad example adds orders_account_id_fkey on the 100,000-row orders inside a transaction and asserts that the statement scanned orders (xact_seq_scans grows), that pg_locks shows ShareRowExclusiveLock on accounts as well, and that an INSERT INTO accounts from another session fails with 55P03: a signup is blocked by a migration on orders. With NOT VALID the same lock is held only for the catalog change; VALIDATE CONSTRAINT then "acquires a SHARE UPDATE EXCLUSIVE lock" and a ROW SHARE lock on the referenced table, so it "does not need to lock out concurrent updates" (good example, pg_locks asserted).
+
+ The fix
+
+sql
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+-- separate transaction (a separate migration where the tool wraps files):
+ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey;
+
+
+ When it does not apply
+
+- The table is created in the same migration set: no rows to validate.
+- The constraint already says NOT VALID (PG010 then checks that the VALIDATE is not in the same transaction).
+- A column-level REFERENCES inside ADD COLUMN: the new column is all NULL, so there is nothing to validate; not this statement shape.
+- Partitioned tables need PostgreSQL 18 or above for NOT VALID foreign keys; on older majors, suppress with a reason.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG008-foreign-key-without-not-valid/RULE.md",
+              "id": "PG008",
+              "name": "foreign-key-without-not-valid",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG008: \`ADD FOREIGN KEY\` without \`NOT VALID\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ADD [CONSTRAINT name] CHECK (...)\` without \`NOT VALID\`, on a table that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ADD [CONSTRAINT name] CHECK (...)\` without \`NOT VALID\`, on a table that is not created in the same migration set.
+
+## Why it matters
+
+\`ALTER TABLE ... ADD CONSTRAINT\` takes \`ACCESS EXCLUSIVE\` ("an \`ACCESS EXCLUSIVE\` lock is acquired unless explicitly noted", [ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and without \`NOT VALID\` it scans every row under that lock: reads and writes wait for the whole scan. The db-skills good example shows the alternative measured: \`ADD CONSTRAINT ... CHECK (...) NOT VALID\` holds \`AccessExclusiveLock\` only for the catalog change (\`pg_locks\` asserted, commit at once), and \`VALIDATE CONSTRAINT\` then runs under \`SHARE UPDATE EXCLUSIVE\`, which does not block reads or writes. The pg-keys-and-types good example swaps a \`CHECK\` with \`NOT VALID\` then \`VALIDATE\` on a live table and asserts that the table's filenode does not change.
+
+## The fix
+
+\`\`\`sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_check CHECK (amount >= 0) NOT VALID;
+-- separate transaction (a separate migration where the tool wraps files):
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_check;
+\`\`\`
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- The constraint already says \`NOT VALID\` (PG010 then checks that the \`VALIDATE\` is not in the same transaction).
+- A \`CHECK\` inside \`ADD COLUMN\` (a column constraint on a new column) is not this statement shape.",
+                "text": " What it detects
+
+ALTER TABLE ... ADD [CONSTRAINT name] CHECK (...) without NOT VALID, on a table that is not created in the same migration set.
+
+ Why it matters
+
+ALTER TABLE ... ADD CONSTRAINT takes ACCESS EXCLUSIVE ("an ACCESS EXCLUSIVE lock is acquired unless explicitly noted", [ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), and without NOT VALID it scans every row under that lock: reads and writes wait for the whole scan. The db-skills good example shows the alternative measured: ADD CONSTRAINT ... CHECK (...) NOT VALID holds AccessExclusiveLock only for the catalog change (pg_locks asserted, commit at once), and VALIDATE CONSTRAINT then runs under SHARE UPDATE EXCLUSIVE, which does not block reads or writes. The pg-keys-and-types good example swaps a CHECK with NOT VALID then VALIDATE on a live table and asserts that the table's filenode does not change.
+
+ The fix
+
+sql
+ALTER TABLE orders ADD CONSTRAINT orders_amount_check CHECK (amount = 0) NOT VALID;
+-- separate transaction (a separate migration where the tool wraps files):
+ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_check;
+
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- The constraint already says NOT VALID (PG010 then checks that the VALIDATE is not in the same transaction).
+- A CHECK inside ADD COLUMN (a column constraint on a new column) is not this statement shape.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG009-check-without-not-valid/RULE.md",
+              "id": "PG009",
+              "name": "check-without-not-valid",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG009: \`ADD CHECK\` without \`NOT VALID\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... VALIDATE CONSTRAINT name\` in the same transaction as the \`ALTER TABLE ... ADD CONSTRAINT name ... NOT VALID\` that created it: inside the same explicit \`BEGIN\` block, or in the same file when the framework wraps the file in one transaction (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, or \`transaction: always\`).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... VALIDATE CONSTRAINT name\` in the same transaction as the \`ALTER TABLE ... ADD CONSTRAINT name ... NOT VALID\` that created it: inside the same explicit \`BEGIN\` block, or in the same file when the framework wraps the file in one transaction (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, or \`transaction: always\`).
+
+## Why it matters
+
+Locks are "held until the end of the transaction" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). \`ADD FOREIGN KEY ... NOT VALID\` takes \`SHARE ROW EXCLUSIVE\` on both tables and \`ADD CHECK ... NOT VALID\` takes \`ACCESS EXCLUSIVE\`; when \`VALIDATE\` runs in the same transaction, its full scan happens while that lock is still held, which is exactly the one-step foreign key the db-skills bad example measures: a scan of \`orders\` under the lock and an \`INSERT INTO accounts\` from another session failing with \`55P03\`. The good example commits between the two steps and asserts that \`VALIDATE\` holds only \`ShareUpdateExclusiveLock\` on \`orders\` and \`RowShareLock\` on \`accounts\`, so writes continue.
+
+## The fix
+
+\`\`\`sql
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+COMMIT;
+BEGIN;
+ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey;
+\`\`\`
+
+Where the framework wraps each file in a transaction, put the \`VALIDATE\` in the next migration file, or use the framework's opt-out so the file runs statement by statement.
+
+## When it does not apply
+
+- The \`ADD ... NOT VALID\` and the \`VALIDATE\` are in different transactions: different files, or a \`COMMIT\` between them in a file that is not wrapped.
+- The table is created in the same migration set.
+- The constraint being validated was not added \`NOT VALID\` in this file (the detector only knows constraints it saw).",
+                "text": " What it detects
+
+ALTER TABLE ... VALIDATE CONSTRAINT name in the same transaction as the ALTER TABLE ... ADD CONSTRAINT name ... NOT VALID that created it: inside the same explicit BEGIN block, or in the same file when the framework wraps the file in one transaction (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, Sqitch, or transaction: always).
+
+ Why it matters
+
+Locks are "held until the end of the transaction" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)). ADD FOREIGN KEY ... NOT VALID takes SHARE ROW EXCLUSIVE on both tables and ADD CHECK ... NOT VALID takes ACCESS EXCLUSIVE; when VALIDATE runs in the same transaction, its full scan happens while that lock is still held, which is exactly the one-step foreign key the db-skills bad example measures: a scan of orders under the lock and an INSERT INTO accounts from another session failing with 55P03. The good example commits between the two steps and asserts that VALIDATE holds only ShareUpdateExclusiveLock on orders and RowShareLock on accounts, so writes continue.
+
+ The fix
+
+sql
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+COMMIT;
+BEGIN;
+ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey;
+
+
+Where the framework wraps each file in a transaction, put the VALIDATE in the next migration file, or use the framework's opt-out so the file runs statement by statement.
+
+ When it does not apply
+
+- The ADD ... NOT VALID and the VALIDATE are in different transactions: different files, or a COMMIT between them in a file that is not wrapped.
+- The table is created in the same migration set.
+- The constraint being validated was not added NOT VALID in this file (the detector only knows constraints it saw).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG010-validate-in-same-transaction/RULE.md",
+              "id": "PG010",
+              "name": "validate-in-same-transaction",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG010: \`VALIDATE CONSTRAINT\` in the same transaction as the \`NOT VALID\` add",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ALTER COLUMN ... TYPE\` on a table that is not created in the same migration set. The detector sees only the new type, not the column's current type, so it reports every retype of an existing table and names the binary-coercible cases in the message.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ALTER COLUMN ... TYPE\` on a table that is not created in the same migration set. The detector sees only the new type, not the column's current type, so it reports every retype of an existing table and names the binary-coercible cases in the message.
+
+## Why it matters
+
+A type change "will normally cause the entire table and its indexes to be rewritten", unless the old type is binary coercible to the new one and there is no \`USING\` clause ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); rebuilds "temporarily require as much as double the disk space". The db-skills bad examples assert it twice with \`pg_relation_filenode\`: \`int\` to \`bigint\` on the 100,000-row \`orders\`, and \`varchar(20)\` to \`varchar(10)\` on \`customers\`, both write a new copy of the table under \`ACCESS EXCLUSIVE\`, which blocks reads and writes for the whole copy.
+
+## The fix
+
+Expand/contract across releases:
+
+\`\`\`sql
+ALTER TABLE orders ADD COLUMN account_id_new bigint;
+-- dual-write account_id and account_id_new from the application; backfill in batches
+-- switch reads to account_id_new; then, in a later release:
+ALTER TABLE orders DROP COLUMN account_id;
+ALTER TABLE orders RENAME COLUMN account_id_new TO account_id;
+\`\`\`
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- The current type is binary-coercible to the new one: \`varchar(n)\` to a larger or unbounded \`varchar\` or to \`text\`, \`numeric(p,s)\` to a larger \`p\` with the same \`s\`, \`timestamp(p)\` to a larger precision. The detector cannot see the current type from the diff, so these are reported; suppress with a reason that names the current type (\`-- lurie-guard: ignore PG011 reason="varchar(50) to varchar(200), binary-coercible"\`).
+- A small lookup table that fits in a few pages: the rewrite takes milliseconds; suppress with a reason, and keep \`lock_timeout\` set (PG004).",
+                "text": " What it detects
+
+ALTER TABLE ... ALTER COLUMN ... TYPE on a table that is not created in the same migration set. The detector sees only the new type, not the column's current type, so it reports every retype of an existing table and names the binary-coercible cases in the message.
+
+ Why it matters
+
+A type change "will normally cause the entire table and its indexes to be rewritten", unless the old type is binary coercible to the new one and there is no USING clause ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); rebuilds "temporarily require as much as double the disk space". The db-skills bad examples assert it twice with pg_relation_filenode: int to bigint on the 100,000-row orders, and varchar(20) to varchar(10) on customers, both write a new copy of the table under ACCESS EXCLUSIVE, which blocks reads and writes for the whole copy.
+
+ The fix
+
+Expand/contract across releases:
+
+sql
+ALTER TABLE orders ADD COLUMN account_id_new bigint;
+-- dual-write account_id and account_id_new from the application; backfill in batches
+-- switch reads to account_id_new; then, in a later release:
+ALTER TABLE orders DROP COLUMN account_id;
+ALTER TABLE orders RENAME COLUMN account_id_new TO account_id;
+
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- The current type is binary-coercible to the new one: varchar(n) to a larger or unbounded varchar or to text, numeric(p,s) to a larger p with the same s, timestamp(p) to a larger precision. The detector cannot see the current type from the diff, so these are reported; suppress with a reason that names the current type (-- lurie-guard: ignore PG011 reason="varchar(50) to varchar(200), binary-coercible").
+- A small lookup table that fits in a few pages: the rewrite takes milliseconds; suppress with a reason, and keep lock_timeout set (PG004).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG011-alter-column-type-rewrites/RULE.md",
+              "id": "PG011",
+              "name": "alter-column-type-rewrites",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG011: \`ALTER COLUMN ... TYPE\` that rewrites the table",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... ADD [CONSTRAINT name] UNIQUE (...)\` or \`PRIMARY KEY (...)\` without \`USING INDEX\`, on a table that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... ADD [CONSTRAINT name] UNIQUE (...)\` or \`PRIMARY KEY (...)\` without \`USING INDEX\`, on a table that is not created in the same migration set.
+
+## Why it matters
+
+Without a prebuilt index, \`ADD CONSTRAINT\` builds the unique index itself inside the \`ALTER TABLE\`, which holds \`ACCESS EXCLUSIVE\`. The db-skills bad example adds \`UNIQUE (email)\` on \`accounts\` inside a transaction and asserts that the statement scanned the table (\`xact_seq_scans\` grows), that \`pg_locks\` shows \`AccessExclusiveLock,ShareLock\` on \`accounts\` until commit, and that an \`INSERT INTO accounts\` from another session fails with \`55P03\`. \`ADD CONSTRAINT ... USING INDEX\` over an index built with \`CREATE UNIQUE INDEX CONCURRENTLY\` "is a fast operation" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); the good example does it and asserts that the constraint enforces uniqueness (\`23505\`).
+
+## The fix
+
+\`\`\`sql
+CREATE UNIQUE INDEX CONCURRENTLY accounts_email_idx ON accounts (email);  -- outside a transaction
+ALTER TABLE accounts ADD CONSTRAINT accounts_email_key UNIQUE USING INDEX accounts_email_idx;
+\`\`\`
+
+For a \`PRIMARY KEY\`, the key columns must already be \`NOT NULL\` (PG007), or \`USING INDEX\` runs \`SET NOT NULL\` with its full scan. The index must be a plain b-tree with default sort order, not partial and without expressions, and the form is not available on partitioned tables.
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- The constraint already says \`USING INDEX\`.
+- A partitioned table: \`USING INDEX\` is not available; suppress with a reason.",
+                "text": " What it detects
+
+ALTER TABLE ... ADD [CONSTRAINT name] UNIQUE (...) or PRIMARY KEY (...) without USING INDEX, on a table that is not created in the same migration set.
+
+ Why it matters
+
+Without a prebuilt index, ADD CONSTRAINT builds the unique index itself inside the ALTER TABLE, which holds ACCESS EXCLUSIVE. The db-skills bad example adds UNIQUE (email) on accounts inside a transaction and asserts that the statement scanned the table (xact_seq_scans grows), that pg_locks shows AccessExclusiveLock,ShareLock on accounts until commit, and that an INSERT INTO accounts from another session fails with 55P03. ADD CONSTRAINT ... USING INDEX over an index built with CREATE UNIQUE INDEX CONCURRENTLY "is a fast operation" ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); the good example does it and asserts that the constraint enforces uniqueness (23505).
+
+ The fix
+
+sql
+CREATE UNIQUE INDEX CONCURRENTLY accounts_email_idx ON accounts (email);  -- outside a transaction
+ALTER TABLE accounts ADD CONSTRAINT accounts_email_key UNIQUE USING INDEX accounts_email_idx;
+
+
+For a PRIMARY KEY, the key columns must already be NOT NULL (PG007), or USING INDEX runs SET NOT NULL with its full scan. The index must be a plain b-tree with default sort order, not partial and without expressions, and the form is not available on partitioned tables.
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- The constraint already says USING INDEX.
+- A partitioned table: USING INDEX is not available; suppress with a reason.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG012-unique-or-pk-without-using-index/RULE.md",
+              "id": "PG012",
+              "name": "unique-or-pk-without-using-index",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG012: \`ADD UNIQUE\` / \`ADD PRIMARY KEY\` without \`USING INDEX\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... RENAME COLUMN old TO new\` and \`ALTER TABLE ... RENAME TO new\` on a table that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... RENAME COLUMN old TO new\` and \`ALTER TABLE ... RENAME TO new\` on a table that is not created in the same migration set.
+
+## Why it matters
+
+The rename itself is a catalog change, but "the previous release keeps serving while and after the migration runs", and "a one-step \`RENAME COLUMN\` or \`DROP COLUMN\` breaks every query of that code when it commits" (pg-online-migrations, rule 8). Every \`SELECT\`, \`INSERT\` or \`UPDATE\` of the running release that names the old column fails with \`42703\` (undefined column) from the commit until the new release is fully deployed; with a rolling deploy that window is minutes. There is no measured fixture for the application-side failure, so the severity is \`warning\`.
+
+## The fix
+
+Expand/contract across releases:
+
+\`\`\`sql
+ALTER TABLE orders ADD COLUMN customer_id bigint;
+-- release N: dual-write account_id and customer_id, backfill in batches
+-- release N+1: read customer_id
+ALTER TABLE orders DROP COLUMN account_id;  -- release N+2
+\`\`\`
+
+For a table rename, create a view with the old name over the new table during the transition, or the reverse.
+
+## When it does not apply
+
+- The table is created in the same migration set.
+- No running code uses the old name (a column nobody reads, a table only the migration touches): suppress with a reason that names the release that stopped using it.",
+                "text": " What it detects
+
+ALTER TABLE ... RENAME COLUMN old TO new and ALTER TABLE ... RENAME TO new on a table that is not created in the same migration set.
+
+ Why it matters
+
+The rename itself is a catalog change, but "the previous release keeps serving while and after the migration runs", and "a one-step RENAME COLUMN or DROP COLUMN breaks every query of that code when it commits" (pg-online-migrations, rule 8). Every SELECT, INSERT or UPDATE of the running release that names the old column fails with 42703 (undefined column) from the commit until the new release is fully deployed; with a rolling deploy that window is minutes. There is no measured fixture for the application-side failure, so the severity is warning.
+
+ The fix
+
+Expand/contract across releases:
+
+sql
+ALTER TABLE orders ADD COLUMN customer_id bigint;
+-- release N: dual-write account_id and customer_id, backfill in batches
+-- release N+1: read customer_id
+ALTER TABLE orders DROP COLUMN account_id;  -- release N+2
+
+
+For a table rename, create a view with the old name over the new table during the transition, or the reverse.
+
+ When it does not apply
+
+- The table is created in the same migration set.
+- No running code uses the old name (a column nobody reads, a table only the migration touches): suppress with a reason that names the release that stopped using it.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG013-rename-in-one-step/RULE.md",
+              "id": "PG013",
+              "name": "rename-in-one-step",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG013: \`RENAME COLUMN\` / \`RENAME TO\` in one step",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "\`ALTER TABLE ... DROP COLUMN\` on a table not created in the same migration set, and \`DROP TABLE\` of a table not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`ALTER TABLE ... DROP COLUMN\` on a table not created in the same migration set, and \`DROP TABLE\` of a table not created in the same migration set.
+
+## Why it matters
+
+"A one-step \`RENAME COLUMN\` or \`DROP COLUMN\` breaks every query of that code when it commits" (pg-online-migrations, rule 8): the running release keeps serving until the deploy finishes, and each of its queries that names the column fails with \`42703\` from the commit on. A dropped column's data is gone (\`DROP COLUMN\` marks it dead in the catalog; the space is reclaimed later), and \`DROP TABLE\` is irreversible without a backup. Both take \`ACCESS EXCLUSIVE\` ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), so PG004 applies too. There is no measured fixture for the application-side failure, so the severity is \`warning\`; the finding asks for the release that stopped reading the column as the suppression reason.
+
+## The fix
+
+\`\`\`sql
+-- release N: stop reading and writing the column, deploy everywhere
+-- release N+1:
+ALTER TABLE orders DROP COLUMN legacy_note;
+\`\`\`
+
+For a table, rename it first (\`ALTER TABLE legacy RENAME TO legacy_dropped\`) and drop it a release later, or take a backup.
+
+## When it does not apply
+
+- The table is created in the same migration set (a PR that creates and drops a scratch table, or a \`down\` migration of the \`up\` in the same PR).
+- No running code uses the column or table: suppress with a reason that names the release that stopped using it.",
+                "text": " What it detects
+
+ALTER TABLE ... DROP COLUMN on a table not created in the same migration set, and DROP TABLE of a table not created in the same migration set.
+
+ Why it matters
+
+"A one-step RENAME COLUMN or DROP COLUMN breaks every query of that code when it commits" (pg-online-migrations, rule 8): the running release keeps serving until the deploy finishes, and each of its queries that names the column fails with 42703 from the commit on. A dropped column's data is gone (DROP COLUMN marks it dead in the catalog; the space is reclaimed later), and DROP TABLE is irreversible without a backup. Both take ACCESS EXCLUSIVE ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)), so PG004 applies too. There is no measured fixture for the application-side failure, so the severity is warning; the finding asks for the release that stopped reading the column as the suppression reason.
+
+ The fix
+
+sql
+-- release N: stop reading and writing the column, deploy everywhere
+-- release N+1:
+ALTER TABLE orders DROP COLUMN legacy_note;
+
+
+For a table, rename it first (ALTER TABLE legacy RENAME TO legacy_dropped) and drop it a release later, or take a backup.
+
+ When it does not apply
+
+- The table is created in the same migration set (a PR that creates and drops a scratch table, or a down migration of the up in the same PR).
+- No running code uses the column or table: suppress with a reason that names the release that stopped using it.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG014-drop-column-or-table/RULE.md",
+              "id": "PG014",
+              "name": "drop-column-or-table",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG014: \`DROP COLUMN\` / \`DROP TABLE\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error",
+              },
+              "fullDescription": {
+                "text": "In a migration: \`VACUUM FULL\`, \`CLUSTER\`, \`REINDEX\` without \`CONCURRENTLY\`, and \`REFRESH MATERIALIZED VIEW\` without \`CONCURRENTLY\`, on a table, index or view that is not created in the same migration set.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+In a migration: \`VACUUM FULL\`, \`CLUSTER\`, \`REINDEX\` without \`CONCURRENTLY\`, and \`REFRESH MATERIALIZED VIEW\` without \`CONCURRENTLY\`, on a table, index or view that is not created in the same migration set.
+
+## Why it matters
+
+\`VACUUM FULL\` "rewrites the entire contents of the table into a new disk file", "requires an \`ACCESS EXCLUSIVE\` lock" and "requires extra disk space" ([VACUUM](https://www.postgresql.org/docs/18/sql-vacuum.html)). \`ACCESS EXCLUSIVE\` is "acquired by the \`DROP TABLE\`, \`TRUNCATE\`, \`REINDEX\`, \`CLUSTER\`, \`VACUUM FULL\`, and \`REFRESH MATERIALIZED VIEW\` (without \`CONCURRENTLY\`) commands" and "conflicts with locks of all modes" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)), so even a \`SELECT\` waits. The db-skills bad example measures three of them on PG 15 and 18: with a report holding \`ACCESS SHARE\` on \`page_counters\`, a \`VACUUM FULL\` from another session queues for \`ACCESS EXCLUSIVE\`, a plain \`SELECT ... WHERE id = 1\` that arrives after it fails with \`55P03\`, and the table has a new filenode when it finishes; \`CLUSTER\` holds \`AccessExclusiveLock,ShareLock\` until commit and changes the filenode; a plain \`REINDEX INDEX\` holds \`ShareLock\` on the table (writes wait) and \`AccessExclusiveLock\` on the index (reads that use it wait).
+
+## The fix
+
+\`\`\`sql
+VACUUM (ANALYZE) page_counters;                      -- online: no exclusive lock
+REINDEX INDEX CONCURRENTLY page_counters_hits_idx;   -- online rebuild, outside a transaction
+REFRESH MATERIALIZED VIEW CONCURRENTLY daily_sales;  -- needs a unique index on the view
+\`\`\`
+
+To shrink a table on disk without the lock, use pg_repack or a copy-and-swap; otherwise plan \`VACUUM FULL\` or \`CLUSTER\` for a maintenance window with traffic stopped.
+
+## When it does not apply
+
+- The table, index or view is created in the same migration set.
+- An agreed maintenance window with traffic stopped: suppress with the reason naming it; still set \`lock_timeout\` (PG004).
+- \`REINDEX INDEX CONCURRENTLY\`, \`REINDEX TABLE CONCURRENTLY\` and \`REFRESH MATERIALIZED VIEW CONCURRENTLY\` are the online forms and are not reported (PG003 checks they are outside a transaction).",
+                "text": " What it detects
+
+In a migration: VACUUM FULL, CLUSTER, REINDEX without CONCURRENTLY, and REFRESH MATERIALIZED VIEW without CONCURRENTLY, on a table, index or view that is not created in the same migration set.
+
+ Why it matters
+
+VACUUM FULL "rewrites the entire contents of the table into a new disk file", "requires an ACCESS EXCLUSIVE lock" and "requires extra disk space" ([VACUUM](https://www.postgresql.org/docs/18/sql-vacuum.html)). ACCESS EXCLUSIVE is "acquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands" and "conflicts with locks of all modes" ([explicit locking](https://www.postgresql.org/docs/18/explicit-locking.html)), so even a SELECT waits. The db-skills bad example measures three of them on PG 15 and 18: with a report holding ACCESS SHARE on page_counters, a VACUUM FULL from another session queues for ACCESS EXCLUSIVE, a plain SELECT ... WHERE id = 1 that arrives after it fails with 55P03, and the table has a new filenode when it finishes; CLUSTER holds AccessExclusiveLock,ShareLock until commit and changes the filenode; a plain REINDEX INDEX holds ShareLock on the table (writes wait) and AccessExclusiveLock on the index (reads that use it wait).
+
+ The fix
+
+sql
+VACUUM (ANALYZE) page_counters;                      -- online: no exclusive lock
+REINDEX INDEX CONCURRENTLY page_counters_hits_idx;   -- online rebuild, outside a transaction
+REFRESH MATERIALIZED VIEW CONCURRENTLY daily_sales;  -- needs a unique index on the view
+
+
+To shrink a table on disk without the lock, use pg_repack or a copy-and-swap; otherwise plan VACUUM FULL or CLUSTER for a maintenance window with traffic stopped.
+
+ When it does not apply
+
+- The table, index or view is created in the same migration set.
+- An agreed maintenance window with traffic stopped: suppress with the reason naming it; still set lock_timeout (PG004).
+- REINDEX INDEX CONCURRENTLY, REINDEX TABLE CONCURRENTLY and REFRESH MATERIALIZED VIEW CONCURRENTLY are the online forms and are not reported (PG003 checks they are outside a transaction).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG015-vacuum-full-or-cluster/RULE.md",
+              "id": "PG015",
+              "name": "vacuum-full-or-cluster",
+              "properties": {
+                "skill": "db-skills/skills/pg-vacuum-and-bloat",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG015: \`VACUUM FULL\`, \`CLUSTER\`, \`REINDEX\` or \`REFRESH MATERIALIZED VIEW\` without \`CONCURRENTLY\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "\`CREATE [UNIQUE] INDEX CONCURRENTLY IF NOT EXISTS\`, on any table.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+\`CREATE [UNIQUE] INDEX CONCURRENTLY IF NOT EXISTS\`, on any table.
+
+## Why it matters
+
+A concurrent build that fails (a deadlock, a duplicate in a unique index, a timeout, a cancelled migration) leaves an index marked \`INVALID\`: "the index will be marked invalid... it will still consume update overhead" and queries ignore it ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html), "Building Indexes Concurrently"). The db-skills bad example makes a unique concurrent build fail on a duplicate, then retries it with \`IF NOT EXISTS\`: the retry sees the invalid index by name, skips the build, and \`pg_index.indisvalid\` stays false. The migration reports success and the table has no usable index. The documented recovery is to drop the index and build it again, or \`REINDEX INDEX CONCURRENTLY\`.
+
+## The fix
+
+\`\`\`sql
+DROP INDEX CONCURRENTLY IF EXISTS accounts_email_idx;
+CREATE UNIQUE INDEX CONCURRENTLY accounts_email_idx ON accounts (email);
+\`\`\`
+
+## When it does not apply
+
+- A runner that never retries a failed step and never re-runs a migration: \`IF NOT EXISTS\` is then harmless but useless; the rule is a \`warning\` for that reason.
+- \`CREATE INDEX IF NOT EXISTS\` without \`CONCURRENTLY\` cannot leave an invalid index (PG001 applies to it instead).",
+                "text": " What it detects
+
+CREATE [UNIQUE] INDEX CONCURRENTLY IF NOT EXISTS, on any table.
+
+ Why it matters
+
+A concurrent build that fails (a deadlock, a duplicate in a unique index, a timeout, a cancelled migration) leaves an index marked INVALID: "the index will be marked invalid... it will still consume update overhead" and queries ignore it ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html), "Building Indexes Concurrently"). The db-skills bad example makes a unique concurrent build fail on a duplicate, then retries it with IF NOT EXISTS: the retry sees the invalid index by name, skips the build, and pg_index.indisvalid stays false. The migration reports success and the table has no usable index. The documented recovery is to drop the index and build it again, or REINDEX INDEX CONCURRENTLY.
+
+ The fix
+
+sql
+DROP INDEX CONCURRENTLY IF EXISTS accounts_email_idx;
+CREATE UNIQUE INDEX CONCURRENTLY accounts_email_idx ON accounts (email);
+
+
+ When it does not apply
+
+- A runner that never retries a failed step and never re-runs a migration: IF NOT EXISTS is then harmless but useless; the rule is a warning for that reason.
+- CREATE INDEX IF NOT EXISTS without CONCURRENTLY cannot leave an invalid index (PG001 applies to it instead).",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG016-create-index-concurrently-if-not-exists/RULE.md",
+              "id": "PG016",
+              "name": "create-index-concurrently-if-not-exists",
+              "properties": {
+                "skill": "db-skills/skills/pg-online-migrations",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG016: \`CREATE INDEX CONCURRENTLY IF NOT EXISTS\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A primary key column of type \`serial\`, \`smallserial\`, \`integer\` or \`smallint\` in \`CREATE TABLE\` (column-level or table-level \`PRIMARY KEY\`), or added with \`ALTER TABLE ... ADD COLUMN ... PRIMARY KEY\`. \`bigserial\` and \`bigint\` are not reported.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A primary key column of type \`serial\`, \`smallserial\`, \`integer\` or \`smallint\` in \`CREATE TABLE\` (column-level or table-level \`PRIMARY KEY\`), or added with \`ALTER TABLE ... ADD COLUMN ... PRIMARY KEY\`. \`bigserial\` and \`bigint\` are not reported.
+
+## Why it matters
+
+\`serial\` is "not a true type", only shorthand for an \`integer\` column with a separate sequence as its default, and its range is "1 to 2147483647" ([numeric types](https://www.postgresql.org/docs/18/datatype-numeric.html)). The db-skills bad example sets the sequence to that maximum and the next insert fails with SQLSTATE \`2200H\`; it also shows a hand-written import (\`id\` 1 and 2) going in quietly and the next normal insert failing with \`23505\`, because the sequence never saw them. Moving to \`bigint\` afterwards is a type change that rewrites the table (PG011). \`bigint GENERATED ALWAYS AS IDENTITY\` costs 4 more bytes per row, never runs out, and refuses an explicit id unless the insert says \`OVERRIDING SYSTEM VALUE\` (\`428C9\` in the good example).
+
+## The fix
+
+\`\`\`sql
+CREATE TABLE customers (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ...
+);
+\`\`\`
+
+## When it does not apply
+
+- A small lookup table that cannot reach two billion rows (countries, statuses): suppress with that reason.
+- Tables whose ids an import or a replication tool must preserve: \`GENERATED BY DEFAULT AS IDENTITY\` on \`bigint\`; the rule only reports the 4-byte types.",
+                "text": " What it detects
+
+A primary key column of type serial, smallserial, integer or smallint in CREATE TABLE (column-level or table-level PRIMARY KEY), or added with ALTER TABLE ... ADD COLUMN ... PRIMARY KEY. bigserial and bigint are not reported.
+
+ Why it matters
+
+serial is "not a true type", only shorthand for an integer column with a separate sequence as its default, and its range is "1 to 2147483647" ([numeric types](https://www.postgresql.org/docs/18/datatype-numeric.html)). The db-skills bad example sets the sequence to that maximum and the next insert fails with SQLSTATE 2200H; it also shows a hand-written import (id 1 and 2) going in quietly and the next normal insert failing with 23505, because the sequence never saw them. Moving to bigint afterwards is a type change that rewrites the table (PG011). bigint GENERATED ALWAYS AS IDENTITY costs 4 more bytes per row, never runs out, and refuses an explicit id unless the insert says OVERRIDING SYSTEM VALUE (428C9 in the good example).
+
+ The fix
+
+sql
+CREATE TABLE customers (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ...
+);
+
+
+ When it does not apply
+
+- A small lookup table that cannot reach two billion rows (countries, statuses): suppress with that reason.
+- Tables whose ids an import or a replication tool must preserve: GENERATED BY DEFAULT AS IDENTITY on bigint; the rule only reports the 4-byte types.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG017-serial-or-integer-primary-key/RULE.md",
+              "id": "PG017",
+              "name": "serial-or-integer-primary-key",
+              "properties": {
+                "skill": "db-skills/skills/pg-keys-and-types",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG017: \`serial\` / \`integer\` primary key",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A \`uuid\` primary key column whose \`DEFAULT\` is \`gen_random_uuid()\`, \`uuid_generate_v4()\` or \`uuidv4()\`, in \`CREATE TABLE\` or \`ALTER TABLE ... ADD COLUMN\`.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A \`uuid\` primary key column whose \`DEFAULT\` is \`gen_random_uuid()\`, \`uuid_generate_v4()\` or \`uuidv4()\`, in \`CREATE TABLE\` or \`ALTER TABLE ... ADD COLUMN\`.
+
+## Why it matters
+
+A B-tree fills leaf pages to its fillfactor "when extending the index at the right (adding new largest key values)"; pages that become completely full "will be split, leading to fragmentation" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). \`gen_random_uuid()\` and its PostgreSQL 18 alias \`uuidv4()\` are random; \`uuidv7()\` is time-ordered ([UUID functions](https://www.postgresql.org/docs/18/functions-uuid.html)). The db-skills bad example inserts the same 200,000 UUIDs in random order and in key order and asserts, with \`pgstatindex\`, that the random-order primary key has leaf density under 75% and is over 30% larger than the ordered one (8.7 MB against 6.3 MB in the skill's run). Random keys also spread every insert over the whole index, so the working set is the whole index rather than its right edge.
+
+## The fix
+
+\`\`\`sql
+id uuid PRIMARY KEY DEFAULT uuidv7()   -- PostgreSQL 18+
+\`\`\`
+
+Below 18, generate UUIDv7 in the application, or use \`bigint GENERATED ALWAYS AS IDENTITY\` when the id never leaves your system (8 bytes against 16).
+
+## When it does not apply
+
+- The id must not reveal when or in what order rows were created: a UUIDv7 contains its creation time (\`uuid_extract_timestamp()\`). Keep the random key or expose a random token in a separate unique column.
+- The key is not the primary key (a random token column) is not reported.",
+                "text": " What it detects
+
+A uuid primary key column whose DEFAULT is gen_random_uuid(), uuid_generate_v4() or uuidv4(), in CREATE TABLE or ALTER TABLE ... ADD COLUMN.
+
+ Why it matters
+
+A B-tree fills leaf pages to its fillfactor "when extending the index at the right (adding new largest key values)"; pages that become completely full "will be split, leading to fragmentation" ([CREATE INDEX](https://www.postgresql.org/docs/18/sql-createindex.html)). gen_random_uuid() and its PostgreSQL 18 alias uuidv4() are random; uuidv7() is time-ordered ([UUID functions](https://www.postgresql.org/docs/18/functions-uuid.html)). The db-skills bad example inserts the same 200,000 UUIDs in random order and in key order and asserts, with pgstatindex, that the random-order primary key has leaf density under 75% and is over 30% larger than the ordered one (8.7 MB against 6.3 MB in the skill's run). Random keys also spread every insert over the whole index, so the working set is the whole index rather than its right edge.
+
+ The fix
+
+sql
+id uuid PRIMARY KEY DEFAULT uuidv7()   -- PostgreSQL 18+
+
+
+Below 18, generate UUIDv7 in the application, or use bigint GENERATED ALWAYS AS IDENTITY when the id never leaves your system (8 bytes against 16).
+
+ When it does not apply
+
+- The id must not reveal when or in what order rows were created: a UUIDv7 contains its creation time (uuid_extract_timestamp()). Keep the random key or expose a random token in a separate unique column.
+- The key is not the primary key (a random token column) is not reported.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG018-random-uuid-primary-key/RULE.md",
+              "id": "PG018",
+              "name": "random-uuid-primary-key",
+              "properties": {
+                "skill": "db-skills/skills/pg-keys-and-types",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG018: random UUID primary key",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A column of type \`timestamp\` (without time zone, with or without precision) in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`. Rails \`datetime\` maps to \`timestamp(6)\` by default and is reported through the detector.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A column of type \`timestamp\` (without time zone, with or without precision) in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`. Rails \`datetime\` maps to \`timestamp(6)\` by default and is reported through the detector.
+
+## Why it matters
+
+For \`timestamp\` without time zone, "PostgreSQL will silently ignore any time zone indication" in the input; for \`timestamptz\`, "the value is stored internally as UTC" and converted to the session's \`TimeZone\` on output ([date/time types](https://www.postgresql.org/docs/18/datatype-datetime.html)). The db-skills bad example writes the same instant from a session in \`America/Sao_Paulo\` (09:00-03) and one in \`Asia/Tokyo\` (21:00+09) into a \`timestamp\` column and asserts that the two stored values are 12 hours apart; the good example stores one value, \`12:00+00\`, into \`timestamptz\`. Both types are 8 bytes.
+
+## The fix
+
+\`\`\`sql
+placed_at timestamptz NOT NULL
+\`\`\`
+
+Changing an existing column's type rewrites the table (PG011): fix it at creation, or expand/contract.
+
+## When it does not apply
+
+- A wall-clock value that is not an instant: a store's opening time, a recurring "09:00 local" alarm. Keep \`time\` or \`timestamp\` plus a time zone column, and suppress with that reason.
+- Rails applications that set \`ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :timestamptz\`: the detector cannot see the application config and maps \`datetime\` to \`timestamp(6)\`, the framework default; set \`rules: {PG019: off}\` or suppress on those migrations.",
+                "text": " What it detects
+
+A column of type timestamp (without time zone, with or without precision) in CREATE TABLE, ALTER TABLE ... ADD COLUMN or ALTER TABLE ... ALTER COLUMN ... TYPE. Rails datetime maps to timestamp(6) by default and is reported through the detector.
+
+ Why it matters
+
+For timestamp without time zone, "PostgreSQL will silently ignore any time zone indication" in the input; for timestamptz, "the value is stored internally as UTC" and converted to the session's TimeZone on output ([date/time types](https://www.postgresql.org/docs/18/datatype-datetime.html)). The db-skills bad example writes the same instant from a session in America/Sao_Paulo (09:00-03) and one in Asia/Tokyo (21:00+09) into a timestamp column and asserts that the two stored values are 12 hours apart; the good example stores one value, 12:00+00, into timestamptz. Both types are 8 bytes.
+
+ The fix
+
+sql
+placed_at timestamptz NOT NULL
+
+
+Changing an existing column's type rewrites the table (PG011): fix it at creation, or expand/contract.
+
+ When it does not apply
+
+- A wall-clock value that is not an instant: a store's opening time, a recurring "09:00 local" alarm. Keep time or timestamp plus a time zone column, and suppress with that reason.
+- Rails applications that set ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :timestamptz: the detector cannot see the application config and maps datetime to timestamp(6), the framework default; set rules: {PG019: off} or suppress on those migrations.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG019-timestamp-without-time-zone/RULE.md",
+              "id": "PG019",
+              "name": "timestamp-without-time-zone",
+              "properties": {
+                "skill": "db-skills/skills/pg-keys-and-types",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG019: \`timestamp\` without time zone",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A column of type \`json\` (not \`jsonb\`) in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`.",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A column of type \`json\` (not \`jsonb\`) in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`.
+
+## Why it matters
+
+\`json\` "stores an exact copy of the input text, which processing functions must reparse on each execution", while \`jsonb\` is decomposed binary, supports indexing, and "most applications should prefer" it ([JSON types](https://www.postgresql.org/docs/18/datatype-json.html)). The db-skills bad example stores \`{"gift": true, "gift": false, "total": "abc"}\` in a \`json\` column and asserts that both copies of the duplicate key are kept and that \`details = '{}'::json\` fails with SQLSTATE \`42883\` (no equality operator); the good example's \`jsonb\` keeps the last duplicate and compares documents with \`=\`.
+
+## The fix
+
+\`\`\`sql
+details jsonb NOT NULL DEFAULT '{}'
+\`\`\`
+
+Changing an existing column's type rewrites the table (PG011): fix it at creation, or expand/contract.
+
+## When it does not apply
+
+- A webhook body or document kept byte for byte for audit, where key order and duplicate keys must survive: keep \`json\` and suppress with that reason.",
+                "text": " What it detects
+
+A column of type json (not jsonb) in CREATE TABLE, ALTER TABLE ... ADD COLUMN or ALTER TABLE ... ALTER COLUMN ... TYPE.
+
+ Why it matters
+
+json "stores an exact copy of the input text, which processing functions must reparse on each execution", while jsonb is decomposed binary, supports indexing, and "most applications should prefer" it ([JSON types](https://www.postgresql.org/docs/18/datatype-json.html)). The db-skills bad example stores {"gift": true, "gift": false, "total": "abc"} in a json column and asserts that both copies of the duplicate key are kept and that details = '{}'::json fails with SQLSTATE 42883 (no equality operator); the good example's jsonb keeps the last duplicate and compares documents with =.
+
+ The fix
+
+sql
+details jsonb NOT NULL DEFAULT '{}'
+
+
+Changing an existing column's type rewrites the table (PG011): fix it at creation, or expand/contract.
+
+ When it does not apply
+
+- A webhook body or document kept byte for byte for audit, where key order and duplicate keys must survive: keep json and suppress with that reason.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG020-json-column/RULE.md",
+              "id": "PG020",
+              "name": "json-column",
+              "properties": {
+                "skill": "db-skills/skills/pg-keys-and-types",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG020: \`json\` column instead of \`jsonb\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "note",
+              },
+              "fullDescription": {
+                "text": "A column of type \`varchar(n)\` or \`char(n)\` in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`. Unbounded \`varchar\` and \`text\` are not reported. The rule is \`info\` and off by default: many teams keep \`varchar(n)\` deliberately. Enable it with \`rules: {PG021: info}\` (or \`warning\`).",
+              },
+              "help": {
+                "markdown": "## What it detects
+
+A column of type \`varchar(n)\` or \`char(n)\` in \`CREATE TABLE\`, \`ALTER TABLE ... ADD COLUMN\` or \`ALTER TABLE ... ALTER COLUMN ... TYPE\`. Unbounded \`varchar\` and \`text\` are not reported. The rule is \`info\` and off by default: many teams keep \`varchar(n)\` deliberately. Enable it with \`rules: {PG021: info}\` (or \`warning\`).
+
+## Why it matters
+
+"There is no performance difference" among \`text\`, \`varchar(n)\` and \`varchar\`, and \`char(n)\` "is usually the slowest of the three because of its additional storage costs" ([character types](https://www.postgresql.org/docs/18/datatype-character.html)). \`varchar(n)\` enforces only a maximum: it still stores \`''\`, and an explicit cast "will be truncated to n characters without raising an error". The db-skills bad example stores an empty email in \`varchar(20)\`, casts a long address and asserts it was silently cut to 20 characters, then shrinks the limit to \`varchar(10)\` and asserts, with \`pg_relation_filenode\`, that the table was rewritten. The good example states the rule as \`CHECK (char_length(email) BETWEEN 3 AND 254)\` on \`text\`, which fails loudly on an empty or a 300-character email and is changed with \`NOT VALID\` then \`VALIDATE\` with the same filenode.
+
+## The fix
+
+\`\`\`sql
+email text NOT NULL,
+CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 3 AND 254)
+\`\`\`
+
+## When it does not apply
+
+- The limit is a real business rule the team keeps deliberately in the type: this is why the rule is \`info\` and off by default.
+- Fixed-length codes defined by a standard (ISO 4217, country codes): \`text\` with \`CHECK (col ~ '^[A-Z]{3}$')\` states the rule more precisely than \`char(3)\`; suppress or keep \`char(n)\` with a reason.",
+                "text": " What it detects
+
+A column of type varchar(n) or char(n) in CREATE TABLE, ALTER TABLE ... ADD COLUMN or ALTER TABLE ... ALTER COLUMN ... TYPE. Unbounded varchar and text are not reported. The rule is info and off by default: many teams keep varchar(n) deliberately. Enable it with rules: {PG021: info} (or warning).
+
+ Why it matters
+
+"There is no performance difference" among text, varchar(n) and varchar, and char(n) "is usually the slowest of the three because of its additional storage costs" ([character types](https://www.postgresql.org/docs/18/datatype-character.html)). varchar(n) enforces only a maximum: it still stores '', and an explicit cast "will be truncated to n characters without raising an error". The db-skills bad example stores an empty email in varchar(20), casts a long address and asserts it was silently cut to 20 characters, then shrinks the limit to varchar(10) and asserts, with pg_relation_filenode, that the table was rewritten. The good example states the rule as CHECK (char_length(email) BETWEEN 3 AND 254) on text, which fails loudly on an empty or a 300-character email and is changed with NOT VALID then VALIDATE with the same filenode.
+
+ The fix
+
+sql
+email text NOT NULL,
+CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 3 AND 254)
+
+
+ When it does not apply
+
+- The limit is a real business rule the team keeps deliberately in the type: this is why the rule is info and off by default.
+- Fixed-length codes defined by a standard (ISO 4217, country codes): text with CHECK (col ~ '^[A-Z]{3}$') states the rule more precisely than char(3); suppress or keep char(n) with a reason.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/rules/pg/PG021-varchar-or-char-length/RULE.md",
+              "id": "PG021",
+              "name": "varchar-or-char-length",
+              "properties": {
+                "skill": "db-skills/skills/pg-keys-and-types",
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "PG021: \`varchar(n)\` / \`char(n)\`",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "A \`lurie-guard: ignore\` comment needs \`reason="..."\`. Without it the suppression is reported and does not suppress anything, so a reviewer always sees why a finding was accepted.",
+              },
+              "help": {
+                "markdown": "A \`lurie-guard: ignore\` comment needs \`reason="..."\`. Without it the suppression is reported and does not suppress anything, so a reviewer always sees why a finding was accepted.",
+                "text": "A lurie-guard: ignore comment needs reason="...". Without it the suppression is reported and does not suppress anything, so a reviewer always sees why a finding was accepted.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/docs/SPEC-MVP.md",
+              "id": "PGS01",
+              "name": "suppression-without-reason",
+              "properties": {
+                "skill": undefined,
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "Suppression without a reason",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "note",
+              },
+              "fullDescription": {
+                "text": "A \`lurie-guard: ignore\` comment that matches no finding on its line or the line below. Remove it, so stale suppressions do not hide a future finding.",
+              },
+              "help": {
+                "markdown": "A \`lurie-guard: ignore\` comment that matches no finding on its line or the line below. Remove it, so stale suppressions do not hide a future finding.",
+                "text": "A lurie-guard: ignore comment that matches no finding on its line or the line below. Remove it, so stale suppressions do not hide a future finding.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/docs/SPEC-MVP.md",
+              "id": "PGS02",
+              "name": "unused-suppression",
+              "properties": {
+                "skill": undefined,
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "Suppression that matches no finding",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning",
+              },
+              "fullDescription": {
+                "text": "\`lurie-guard: ignore all\` suppresses every finding on the statement. It is accepted and reported so it stays visible in review; prefer naming the rule ids.",
+              },
+              "help": {
+                "markdown": "\`lurie-guard: ignore all\` suppresses every finding on the statement. It is accepted and reported so it stays visible in review; prefer naming the rule ids.",
+                "text": "lurie-guard: ignore all suppresses every finding on the statement. It is accepted and reported so it stays visible in review; prefer naming the rule ids.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/docs/SPEC-MVP.md",
+              "id": "PGS03",
+              "name": "ignore-all",
+              "properties": {
+                "skill": undefined,
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "Suppression of every rule on a statement",
+              },
+            },
+            {
+              "defaultConfiguration": {
+                "level": "note",
+              },
+              "fullDescription": {
+                "text": "PostgreSQL's parser rejected the file at the given position, so no rule ran on it. The run continues and the exit code is not affected. Check the statement at that position; a file the parser rejects would also fail in production.",
+              },
+              "help": {
+                "markdown": "PostgreSQL's parser rejected the file at the given position, so no rule ran on it. The run continues and the exit code is not affected. Check the statement at that position; a file the parser rejects would also fail in production.",
+                "text": "PostgreSQL's parser rejected the file at the given position, so no rule ran on it. The run continues and the exit code is not affected. Check the statement at that position; a file the parser rejects would also fail in production.",
+              },
+              "helpUri": "https://github.com/lurielabs/lurie-guard/blob/main/docs/SPEC-MVP.md",
+              "id": "PGS04",
+              "name": "could-not-parse",
+              "properties": {
+                "skill": undefined,
+                "tags": [
+                  "postgresql",
+                  "migration",
+                ],
+              },
+              "shortDescription": {
+                "text": "File could not be parsed",
+              },
+            },
+          ],
+          "semanticVersion": "0.1.0",
+        },
+      },
+    },
+  ],
+  "version": "2.1.0",
+}
+`;
+
+exports[`review > plans one review with suggestions, hides fingerprints, respects max_comments and the diff 1`] = `
+{
+  "body": "**lurie-guard**: 8 findings (4 errors, 3 warnings, 1 info).
+Report-only: this check passes whatever it finds. To block merges on errors, add \`fail_on: error\` to \`.lurie-guard.yml\` on the base branch.
+
+Suppressed with a reason:
+- \`migrations/0001_orders.sql:2\` PG004: the runner sets lock_timeout through ALTER ROLE
+
+<!-- lurie-guard:fingerprints 0526c5c547c39fe1259ed8ea4d7ea111,64732e7ab494e2e960586bec099893fc,697b241ab30e66458bcf67681a63dc5c,98f939eb984677b6b159c9822df6e280,9bc31fc1b14f87db8c9258034f2df3ea,a49c8c5368b691f1ad26c261bca782cc,c7f21f6386c0fe5e9120a0454fa99c57,d56ec5cc4fa760eb03f483e44f5993a5 -->",
+  "comments": [
+    {
+      "body": "**PG003** (error): \`CREATE INDEX CONCURRENTLY\` cannot run inside a transaction block: PostgreSQL rejects it with SQLSTATE \`25001\` and the migration fails. This statement runs in a file rails wraps in a transaction. Fix: Rails: call \`disable_ddl_transaction!\` in the migration class. No exception: the statement never works inside a transaction. (PG003, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/good/test.sql#L129-L131))
+
+<!-- lurie-guard:fp:64732e7ab494e2e960586bec099893fc -->",
+      "line": 3,
+      "path": "db/migrate/20261019120000_add_index.rb",
+      "side": "RIGHT",
+    },
+    {
+      "body": "**PG006** (error): \`ADD COLUMN sku ... NOT NULL\` without a default fails on any table that has rows: nothing fills the existing rows of \`orders\`, so PostgreSQL rejects the statement with SQLSTATE \`23502\` and the migration aborts. Add it with a constant default (\`NOT NULL DEFAULT <constant>\`: metadata-only, no rewrite), or add it nullable, backfill in batches, then \`SET NOT NULL\` through a validated \`CHECK\` (PG007). Not needed if \`orders\` is new in this release or empty. (PG006, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L117-L123))
+
+\`\`\`sql
+ALTER TABLE orders ADD COLUMN sku text NOT NULL DEFAULT <constant>;
+-- or: add it nullable, backfill in batches, then the validated-CHECK path (PG007)
+\`\`\`
+
+<!-- lurie-guard:fp:98f939eb984677b6b159c9822df6e280 -->",
+      "line": 2,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+    },
+    {
+      "body": "**PG001** (error): \`CREATE INDEX\` holds a \`SHARE\` lock on \`orders\` for the whole build; every insert, update and delete on \`orders\` waits. Build it with \`CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at)\`, outside a transaction (PG003 checks that). Not needed if \`orders\` is new in this release or empty. (PG001, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L99-L104))
+
+\`\`\`suggestion
+CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);
+\`\`\`
+
+<!-- lurie-guard:fp:0526c5c547c39fe1259ed8ea4d7ea111 -->",
+      "line": 3,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+    },
+    {
+      "body": "**PG004** (warning): \`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrives after it queues behind the DDL. Run \`SET lock_timeout = '2s'\` (or \`SET LOCAL\` inside the transaction) before the first DDL and retry on SQLSTATE \`55P03\`. Not needed when your migration runner sets \`lock_timeout\` for every session: say so with \`lock_timeout_set_by_runner: true\` in \`.lurie-guard.yml\`. (PG004, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L24-L49))
+
+\`\`\`sql
+SET lock_timeout = '2s';  -- a few seconds; retry the step on 55P03
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id);
+\`\`\`
+
+<!-- lurie-guard:fp:697b241ab30e66458bcf67681a63dc5c -->",
+      "line": 5,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+      "start_line": 4,
+      "start_side": "RIGHT",
+    },
+    {
+      "body": "**PG008** (error): \`ADD FOREIGN KEY\` validates every row of \`orders\` while it holds \`SHARE ROW EXCLUSIVE\` on \`orders\` and on \`accounts\`: writes on both tables wait for the whole scan. Add it with \`NOT VALID\` (catalog only), then \`ALTER TABLE orders VALIDATE CONSTRAINT orders_account_id_fkey\` in a separate transaction, which takes only \`SHARE UPDATE EXCLUSIVE\` and lets writes continue. Not needed if \`orders\` is new in this release or empty. (PG008, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-online-migrations/examples/bad/test.sql#L69-L85))
+
+\`\`\`suggestion
+ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey
+  FOREIGN KEY (account_id) REFERENCES accounts (id) NOT VALID;
+\`\`\`
+
+<!-- lurie-guard:fp:c7f21f6386c0fe5e9120a0454fa99c57 -->",
+      "line": 5,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+      "start_line": 4,
+      "start_side": "RIGHT",
+    },
+    {
+      "body": "**PG017** (warning): \`id serial PRIMARY KEY\` on \`customers\` is a 4-byte key with a separate sequence: it stops at 2147483647 (inserts then fail with SQLSTATE \`2200H\`), and moving to \`bigint\` later rewrites the whole table. Declare it \`id bigint GENERATED ALWAYS AS IDENTITY\`: 4 more bytes per row, never runs out, and the SQL-standard identity refuses hand-written ids. Not needed for a small lookup table that cannot reach 2 billion rows; suppress with that reason. (PG017, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L29-L37))
+
+\`\`\`suggestion
+CREATE TABLE customers (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email varchar(20),
+  created_at timestamp
+);
+\`\`\`
+
+<!-- lurie-guard:fp:d56ec5cc4fa760eb03f483e44f5993a5 -->",
+      "line": 10,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+      "start_line": 6,
+      "start_side": "RIGHT",
+    },
+    {
+      "body": "**PG021** (info): \`email varchar(20)\` on \`customers\` enforces only a maximum: it still accepts \`''\`, an explicit cast silently truncates to 20 characters, and shrinking the limit later rewrites the table. Declare it \`text\` with a named check, \`CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 1 AND 20)\`, which states the real rule and can be changed with \`NOT VALID\` then \`VALIDATE\` and no rewrite. Not needed when the limit is a real business rule the team keeps deliberately, or for fixed-length codes from a standard (then prefer \`text\` with a regular-expression check). (PG021, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L39-L52))
+
+\`\`\`sql
+email text,
+CONSTRAINT customers_email_len CHECK (char_length(email) BETWEEN 1 AND 20)
+\`\`\`
+
+<!-- lurie-guard:fp:a49c8c5368b691f1ad26c261bca782cc -->",
+      "line": 8,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+    },
+    {
+      "body": "**PG019** (warning): \`created_at timestamp\` on \`customers\` is a timestamp without time zone: PostgreSQL "silently ignore[s] any time zone indication" on input, so the same instant written from two sessions with different \`TimeZone\` settings is stored as two values (12 hours apart in the db-skills test). Declare it \`timestamptz\`: stored as UTC, same 8 bytes, converted on output to the session's zone. Not needed for a wall-clock value that is deliberately zone-free (a store's opening time, a recurring local alarm); suppress with that reason. (PG019, [evidence](https://github.com/rafapeixer/db-skills/blob/c6eb44e9ab3b9458099b0a808ca4a2cde9f2db57/skills/pg-keys-and-types/examples/bad/test.sql#L54-L61))
+
+\`\`\`suggestion
+CREATE TABLE customers (
+  id serial PRIMARY KEY,
+  email varchar(20),
+  created_at timestamptz
+);
+\`\`\`
+
+<!-- lurie-guard:fp:9bc31fc1b14f87db8c9258034f2df3ea -->",
+      "line": 10,
+      "path": "migrations/0001_orders.sql",
+      "side": "RIGHT",
+      "start_line": 6,
+      "start_side": "RIGHT",
+    },
+  ],
+}
+`;
+
+exports[`summary and annotations > summary lists counts, findings, suppressions, files and not-analyzed calls 1`] = `
+"## lurie-guard
+
+**8 findings**: 4 errors, 3 warnings, 1 info. 1 suppressed.
+
+Report-only: the check passes whatever it finds (\`fail_on: none\`, the default through v0.x). To block merges on errors, add \`fail_on: error\` to \`.lurie-guard.yml\` on the base branch.
+
+### Findings
+
+| File | Line | Rule | Severity | What happens |
+|---|---|---|---|---|
+| \`db/migrate/20261019120000_add_index.rb\` | 3 | PG003 | error | \`CREATE INDEX CONCURRENTLY\` cannot run inside a transaction block: PostgreSQL rejects it with SQLSTATE \`25001\` and the migration fails. |
+| \`migrations/0001_orders.sql\` | 2 | PG006 | error | \`ADD COLUMN sku ... |
+| \`migrations/0001_orders.sql\` | 3 | PG001 | error | \`CREATE INDEX\` holds a \`SHARE\` lock on \`orders\` for the whole build; every insert, update and delete on \`orders\` waits. |
+| \`migrations/0001_orders.sql\` | 4 | PG004 | warning | \`ALTER TABLE\` waits for a heavy lock (\`ACCESS EXCLUSIVE\` or \`SHARE ROW EXCLUSIVE\`) on \`orders\` with \`lock_timeout\` at its default of 0 (wait forever): it queues behind any long transaction, and every query that arrive... |
+| \`migrations/0001_orders.sql\` | 4 | PG008 | error | \`ADD FOREIGN KEY\` validates every row of \`orders\` while it holds \`SHARE ROW EXCLUSIVE\` on \`orders\` and on \`accounts\`: writes on both tables wait for the whole scan. |
+| \`migrations/0001_orders.sql\` | 7 | PG017 | warning | \`id serial PRIMARY KEY\` on \`customers\` is a 4-byte key with a separate sequence: it stops at 2147483647 (inserts then fail with SQLSTATE \`2200H\`), and moving to \`bigint\` later rewrites the whole table. |
+| \`migrations/0001_orders.sql\` | 8 | PG021 | info | \`email varchar(20)\` on \`customers\` enforces only a maximum: it still accepts \`''\`, an explicit cast silently truncates to 20 characters, and shrinking the limit later rewrites the table. |
+| \`migrations/0001_orders.sql\` | 9 | PG019 | warning | \`created_at timestamp\` on \`customers\` is a timestamp without time zone: PostgreSQL "silently ignore[s] any time zone indication" on input, so the same instant written from two sessions with different \`TimeZone\` settin... |
+
+### Suppressed
+
+| File | Line | Rule | Reason |
+|---|---|---|---|
+| \`migrations/0001_orders.sql\` | 2 | PG004 | the runner sets lock_timeout through ALTER ROLE |
+
+### Files
+
+| File | Framework | Transaction | Statements | Status |
+|---|---|---|---|---|
+| \`db/migrate/20261019120000_add_index.rb\` | rails | wrapped | 1 | analyzed |
+| \`migrations/0001_orders.sql\` | sql | not wrapped | 4 | analyzed |
+
+Run time: (elided)"
+`;
