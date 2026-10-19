@@ -48,7 +48,7 @@ What this means: **lurie-guard cannot and should not compete with Squawk on the 
 - **Tracing locks of the script under review** (Eugene trace): a different, complementary approach. The README recommends Eugene for teams that can run PostgreSQL in the runner and want the exact locks of their own script.
 - **Style and formatting** (sqlfluff).
 - **General AI code review** (CodeRabbit, Copilot, Greptile): lurie-guard's LLM layer is scoped to its findings and its skills. A team can run both; CodeRabbit already runs Squawk, and could run lurie-guard the same way.
-- **The "Lurie Guard" name space**: at least seven Marketplace actions carry "Lurie Guard" in the name, all AI code review or PR quality gates ([ADR 0005](adr/0005-name.md)).
+- **The "PR Guard" name space**: at least seven Marketplace actions carry "PR Guard" in the name, all AI code review or PR quality gates, which is one reason the product is not called that ([ADR 0005](adr/0005-name.md)).
 
 ## Decision
 
