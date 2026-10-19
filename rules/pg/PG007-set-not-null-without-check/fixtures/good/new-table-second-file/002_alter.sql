@@ -1,0 +1,1 @@
+ALTER TABLE order_events ALTER COLUMN amount SET NOT NULL;
