@@ -1,0 +1,4 @@
+# This repository's own configuration: the action reviews its dogfooding folder on every PR.
+version: 1
+paths:
+  - fixtures/self/**/*.sql

@@ -1,0 +1,51 @@
+# CI on every push and pull request: lint, type check, unit and fixture tests,
+# the end-to-end run of the built action against a fake GitHub API, a fresh
+# build compared with the committed dist/, the rule format check against the
+# pinned db-skills commit, and the rule freshness check. Every third-party
+# action is pinned to a full commit SHA (docs/ARCHITECTURE.md, "Security model").
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - name: dist/ and src/generated/ are up to date
+        run: git diff --exit-code -- dist src/generated
+      - run: npm test
+      - name: rule format, evidence links at the pinned db-skills commit, README index
+        run: bash scripts/validate.sh
+      - name: rules verified within six months
+        run: bash scripts/check-freshness.sh
+      - name: fixtures through the whole pipeline, determinism diff, performance budget
+        run: bash scripts/test-rules.sh
+
+  # The action on itself: the dogfooding folder (fixtures/self) is reviewed on every PR.
+  self-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./

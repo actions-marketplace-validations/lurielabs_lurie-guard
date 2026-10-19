@@ -1,0 +1,20 @@
+# Weekly and on demand: the cost test of every `error` rule against real
+# PostgreSQL 15 and 18 in Docker (scripts/test-fixtures.sh). Slow, so not on
+# every push. A failure means a rule's claimed cost no longer reproduces.
+name: fixtures
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cost-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: bash scripts/test-fixtures.sh
