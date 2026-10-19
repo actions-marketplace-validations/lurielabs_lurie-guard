@@ -164,3 +164,4 @@ A GitHub App gives: installation on an organization without a workflow file, com
 | [0007](adr/0007-report-only-default.md) | Report-only by default through v0.x; `fail_on: error` is opt-in |
 | [0008](adr/0008-host-language-migrations-mvp-scope.md) | Host-language migrations: raw SQL everywhere, Rails DSL helpers; Django and Alembic DSL later |
 | [0009](adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |
+| [0010](adr/0010-bundle-format-http-client-vendored-skills.md) | Amends 0009: ESM bundle, a fetch-based GitHub client (no Octokit), vendored skill text |

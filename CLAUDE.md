@@ -159,6 +159,7 @@ Decisions that shape the product are recorded as ADRs in `docs/adr/`, one file p
 | [0007](docs/adr/0007-report-only-default.md) | Report-only by default through v0.x; `fail_on: error` is opt-in |
 | [0008](docs/adr/0008-host-language-migrations-mvp-scope.md) | Host-language migrations: raw SQL everywhere, Rails DSL helpers; Django and Alembic DSL after the first pilot that asks |
 | [0009](docs/adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |
+| [0010](docs/adr/0010-bundle-format-http-client-vendored-skills.md) | Amends 0009: ESM bundle, a fetch-based GitHub client (no Octokit), vendored skill text |
 
 ## Language and tone
 
