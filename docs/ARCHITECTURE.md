@@ -77,7 +77,7 @@ A pass over the findings with the comment lines of each file. See [SPEC-MVP.md](
 Four reporters consume the same list of findings. Each one fails independently and never blocks the others: a 403 from the reviews API (fork PR, read-only token) is logged and the SARIF and summary still happen. The exit code depends only on the findings and `fail_on`.
 
 - **Review comments**: one `POST /pulls/{n}/reviews` with the `comments` array, `event: COMMENT`, a body with the counts and the hidden fingerprint list for idempotence. Comments outside the diff fall back to the summary.
-- **SARIF**: one `run`, the full rule catalog in `tool.driver.rules`, one result per finding, suppressions as `suppressions[]`. Written to disk (output `sarif_file`) and uploaded with `POST /repos/{owner}/{repo}/code-scanning/sarifs` (gzip, base64) when `security-events: write` is available, otherwise left for `github/codeql-action/upload-sarif`.
+- **SARIF**: one `run`, the full rule catalog in `tool.driver.rules`, one result per finding, suppressions as `suppressions[]`. Written to disk (output `sarif_file`) on every run; uploaded with `POST /repos/{owner}/{repo}/code-scanning/sarifs` (gzip, base64) only when opted in (`outputs.sarif: true` or `upload_sarif: true`), because code scanning posts its own review on every uploaded finding of a PR ([ADR 0011](adr/0011-sarif-upload-opt-in.md)); otherwise left for the workflow (`github/codeql-action/upload-sarif`, for example on `push` to the default branch).
 - **Summary**: Markdown appended to `$GITHUB_STEP_SUMMARY`, under 1 MiB.
 - **Annotations**: `::error`/`::warning` commands, first 10 of each.
 
@@ -165,3 +165,4 @@ A GitHub App gives: installation on an organization without a workflow file, com
 | [0008](adr/0008-host-language-migrations-mvp-scope.md) | Host-language migrations: raw SQL everywhere, Rails DSL helpers; Django and Alembic DSL later |
 | [0009](adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |
 | [0010](adr/0010-bundle-format-http-client-vendored-skills.md) | Amends 0009: ESM bundle, a fetch-based GitHub client (no Octokit), vendored skill text |
+| [0011](adr/0011-sarif-upload-opt-in.md) | Amends 0004: the SARIF upload is opt-in; GitHub comments every uploaded finding on the PR itself |

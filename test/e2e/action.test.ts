@@ -181,7 +181,7 @@ describe('the built action end to end (no network)', () => {
     fake.state.sarifStatus = 202;
   }
 
-  it('posts one review with suggestions, uploads the SARIF, writes the summary and outputs, exits 0 (report-only)', async () => {
+  it('posts one review with suggestions, writes the SARIF file without uploading it, writes the summary and outputs, exits 0 (report-only)', async () => {
     reset();
     const r = await runAction(fake, workspace, event());
     expect(r.stderr).toBe('');
@@ -199,15 +199,10 @@ describe('the built action end to end (no network)', () => {
       ['migrations/0002_index.sql', 2, 'RIGHT', '**PG006**'],
     ]);
     expect(body.comments[0].body).toContain('```suggestion\nCREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);\n```');
-    const upload = fake.requests.find((q) => q.method === 'POST' && /sarifs/.test(q.url));
-    expect(upload).toBeDefined();
-    const u = upload!.body as { commit_sha: string; ref: string; sarif: string };
-    expect(u.commit_sha).toBe('a'.repeat(40));
-    expect(u.ref).toBe('refs/pull/1/head');
-    const decoded = JSON.parse(gunzipSync(Buffer.from(u.sarif, 'base64')).toString('utf8')) as { version: string; runs: { results: unknown[] }[] };
-    expect(decoded.version).toBe('2.1.0');
-    expect(decoded.runs[0].results.length).toBe(3);
-    expect(r.sarif).toEqual(decoded);
+    // The upload is opt-in (ADR 0011): no request by default, the file is written anyway.
+    expect(fake.requests.find((q) => q.method === 'POST' && /sarifs/.test(q.url))).toBeUndefined();
+    expect(r.stdout).toContain('not uploaded to code scanning');
+    expect((r.sarif as { version: string }).version).toBe('2.1.0');
     expect(r.summary).toContain('## lurie-guard');
     expect(r.summary).toContain('PG001');
     expect(r.outputs.findings).toBe('3');
@@ -217,6 +212,28 @@ describe('the built action end to end (no network)', () => {
     expect(r.stdout).toMatch(/::error title=lurie-guard PG001,file=migrations\/0002_index.sql,line=1,endLine=1::/);
     // The only hosts contacted: the fake api.github.com.
     expect(fake.requests.every((q) => q.url.startsWith('/repos/lurielabs/sample/'))).toBe(true);
+  });
+
+  it('uploads the SARIF when the base config opts in (outputs.sarif: true), gzip and base64, for the PR head ref', async () => {
+    reset();
+    fake.state.baseConfig = 'outputs:\n  sarif: true\n';
+    const r = await runAction(fake, workspace, event());
+    expect(r.status).toBe(0);
+    const upload = fake.requests.find((q) => q.method === 'POST' && /sarifs/.test(q.url));
+    expect(upload).toBeDefined();
+    const u = upload!.body as { commit_sha: string; ref: string; sarif: string };
+    expect(u.commit_sha).toBe('a'.repeat(40));
+    expect(u.ref).toBe('refs/pull/1/head');
+    const decoded = JSON.parse(gunzipSync(Buffer.from(u.sarif, 'base64')).toString('utf8')) as { version: string; runs: { results: unknown[] }[] };
+    expect(decoded.version).toBe('2.1.0');
+    expect(decoded.runs[0].results.length).toBe(3);
+    expect(r.sarif).toEqual(decoded);
+    expect(r.stdout).toContain('SARIF uploaded to code scanning');
+    // The action input is the other switch.
+    reset();
+    const viaInput = await runAction(fake, workspace, event(), { upload_sarif: 'true' });
+    expect(viaInput.status).toBe(0);
+    expect(fake.requests.find((q) => q.method === 'POST' && /sarifs/.test(q.url))).toBeDefined();
   });
 
   it('is idempotent: a second run on the same commit posts nothing new', async () => {
@@ -264,6 +281,7 @@ describe('the built action end to end (no network)', () => {
 
   it('with contents: read only (403 on the review and the upload) the run still completes with summary and annotations', async () => {
     reset();
+    fake.state.baseConfig = 'outputs:\n  sarif: true\n';
     fake.state.reviewStatus = 403;
     fake.state.sarifStatus = 403;
     const r = await runAction(fake, workspace, event());

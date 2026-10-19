@@ -22,9 +22,9 @@ inputs:
     required: false
     default: 'lurie-guard.sarif'
   upload_sarif:
-    description: 'Upload the SARIF to code scanning when the token has security-events: write.'
+    description: 'Opt in to the code scanning upload (needs security-events: write). Off by default: GitHub then posts its own review comment on every finding of the PR, next to lurie-guard''s (ADR 0011). The same switch is outputs.sarif in .lurie-guard.yml. The SARIF file is written either way.'
     required: false
-    default: 'true'
+    default: 'false'
   strict:
     description: 'Exit 1 when a GitHub API call fails (comments, SARIF upload). Default: log a warning and continue.'
     required: false

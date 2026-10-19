@@ -58035,7 +58035,8 @@ function defaultConfig(catalog2) {
     failOn: "none",
     rules: rules2,
     ruleExcludes: {},
-    outputs: { reviewComments: true, sarif: true, summary: true, maxComments: 25 },
+    // sarif: the upload to code scanning is opt-in (ADR 0011); the file is always written.
+    outputs: { reviewComments: true, sarif: false, summary: true, maxComments: 25 },
     llm: { model: DEFAULT_LLM_MODEL, explain: true, extraChecks: false, maxCostUsdPerRun: 0.5 }
   };
 }
@@ -65267,7 +65268,7 @@ async function main() {
   const anthropicKey = getInput("anthropic_api_key");
   const configPath = getInput("config_path") || ".lurie-guard.yml";
   const sarifFile = getInput("sarif_file") || "lurie-guard.sarif";
-  const uploadSarif = (getInput("upload_sarif") || "true") !== "false";
+  const uploadSarifInput = getInput("upload_sarif") === "true";
   const strict = getInput("strict") === "true";
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
   const apiFailures = [];
@@ -65382,7 +65383,11 @@ async function main() {
   const sarifPath = resolve2(workspace, sarifFile);
   writeFileSync(sarifPath, sarifJson);
   setOutput("sarif_file", sarifPath);
-  if (!fork && uploadSarif && out2.config.outputs.sarif) {
+  const uploadSarif = uploadSarifInput || out2.config.outputs.sarif;
+  if (!fork && !uploadSarif) {
+    info2(`SARIF written to ${sarifPath}; not uploaded to code scanning. Opt in with outputs.sarif: true in .lurie-guard.yml or upload_sarif: true (GitHub then also comments each finding on the PR).`);
+  }
+  if (!fork && uploadSarif) {
     try {
       const id = await client.uploadSarif(owner, repo, pr.head.sha, `refs/pull/${pr.number}/head`, sarifJson);
       info2(`SARIF uploaded to code scanning${id ? ` (${id})` : ""}.`);

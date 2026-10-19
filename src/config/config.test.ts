@@ -15,6 +15,8 @@ describe('config', () => {
     expect(c.rules.PG001).toBe('error');
     expect(c.rules.PG004).toBe('warning');
     expect(c.outputs.maxComments).toBe(25);
+    expect(c.outputs.sarif, 'the code scanning upload is opt-in (ADR 0011)').toBe(false);
+    expect(c.outputs.reviewComments).toBe(true);
     expect(c.llm.model).toBe('claude-sonnet-5-5');
   });
 
@@ -45,6 +47,7 @@ rules:
       - db/migrate/legacy/**
 outputs:
   review_comments: false
+  sarif: true
   max_comments: 5
 llm:
   model: claude-haiku-5-5
@@ -64,6 +67,7 @@ llm:
     expect(c.rules.PG004).toBe('error');
     expect(c.ruleExcludes.PG004).toEqual(['db/migrate/legacy/**']);
     expect(c.outputs.reviewComments).toBe(false);
+    expect(c.outputs.sarif).toBe(true);
     expect(c.outputs.maxComments).toBe(5);
     expect(c.llm.model).toBe('claude-haiku-5-5');
     expect(c.llm.explain).toBe(false);

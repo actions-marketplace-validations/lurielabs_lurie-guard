@@ -12211,7 +12211,8 @@ function defaultConfig(catalog2) {
     failOn: "none",
     rules: rules2,
     ruleExcludes: {},
-    outputs: { reviewComments: true, sarif: true, summary: true, maxComments: 25 },
+    // sarif: the upload to code scanning is opt-in (ADR 0011); the file is always written.
+    outputs: { reviewComments: true, sarif: false, summary: true, maxComments: 25 },
     llm: { model: DEFAULT_LLM_MODEL, explain: true, extraChecks: false, maxCostUsdPerRun: 0.5 }
   };
 }

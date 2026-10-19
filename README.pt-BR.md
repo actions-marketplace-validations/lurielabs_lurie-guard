@@ -20,7 +20,7 @@ on:
 permissions:
   contents: read          # ler o diff e a configuração
   pull-requests: write    # publicar os comentários de revisão
-  security-events: write  # enviar o SARIF para o code scanning
+  security-events: write  # usado só quando você opta pelo envio ao code scanning (veja SARIF abaixo)
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
 ```
 
 - **Comentários de revisão** na linha exata, com uma sugestão de alteração quando a correção é uma única instrução.
-- **SARIF** enviado ao code scanning do GitHub, com fingerprints estáveis e a documentação da regra.
+- **SARIF** 2.1.0 escrito em toda execução, com fingerprints estáveis e a documentação da regra. O envio ao code scanning é opcional (`outputs: {sarif: true}` no `.lurie-guard.yml`, ou o input `upload_sarif: true`): ele adiciona o histórico na aba Security, e o GitHub também comenta cada achado no PR, ao lado do comentário do lurie-guard ([ADR 0011](docs/adr/0011-sarif-upload-opt-in.md)).
 - **Um resumo do job** com todos os achados, todas as supressões e seus motivos.
 - **Só relata, por padrão.** Todo achado é relatado e o check passa. Quando você confiar nos achados, adicione `fail_on: error` ao `.lurie-guard.yml` e os erros bloqueiam o merge; o arquivo é lido do branch base para que um PR não consiga desligar as próprias verificações ([ADR 0007](docs/adr/0007-report-only-default.md)).
 
@@ -54,7 +54,7 @@ jobs:
 | Frameworks | Transação por framework (tabela abaixo), `.conf` do Flyway, `runInTransaction` do Liquibase, `disable_ddl_transaction!` do Rails, `atomic = False` do Django, `autocommit_block()` do Alembic, `transaction:false` do dbmate |
 | Linguagens hospedeiras | SQL bruto de `execute` (Rails), `RunSQL` (Django), `op.execute` (Alembic); os helpers do Rails `add_index`, `add_column`, `add_foreign_key`, `change_column_null`, `change_column` (mais `create_table`, `drop_table`, `remove_column`, `rename_column`, `rename_table`) mapeados para SQL; todo o resto listado como "não analisado" |
 | Configuração | `.lurie-guard.yml` lido do branch base; chaves, ids de regra ou severidades desconhecidas falham a execução nomeando a chave |
-| Saídas | Uma revisão por execução com sugestões de alteração e fingerprints idempotentes; SARIF 2.1.0 validado contra o schema, com `partialFingerprints` e supressões in-source, enviado pela própria action; resumo do job; anotações; outputs e código de saída |
+| Saídas | Uma revisão por execução com sugestões de alteração e fingerprints idempotentes; SARIF 2.1.0 validado contra o schema, com `partialFingerprints` e supressões in-source, enviado pela action quando se opta por isso (ADR 0011); resumo do job; anotações; outputs e código de saída |
 | PRs de fork | Resumo, anotações e código de saída; comentários e upload pulados (o token é somente leitura) |
 | Explicador | Opcional, com a sua chave, o texto da skill da regra como contexto em cache, custo mostrado no resumo. Implementado e testado com um cliente falso; ainda não exercitado contra a API real |
 | CLI | `node dist/cli.js` (em breve `npx lurie-guard`): o mesmo engine sobre uma pasta ou uma lista de arquivos, para varrer o histórico |

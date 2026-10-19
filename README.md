@@ -20,7 +20,7 @@ on:
 permissions:
   contents: read          # read the diff and the config
   pull-requests: write    # post the review comments
-  security-events: write  # upload the SARIF to code scanning
+  security-events: write  # only used when you opt in to the code scanning upload (see SARIF below)
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
 ```
 
 - **Review comments** on the exact line, with a suggested change when the fix is one statement.
-- **SARIF** uploaded to GitHub code scanning, with stable fingerprints and the rule's documentation.
+- **SARIF** 2.1.0 written on every run, with stable fingerprints and the rule's documentation. The upload to code scanning is opt-in (`outputs: {sarif: true}` in `.lurie-guard.yml`, or the `upload_sarif: true` input): it adds the Security tab history, and GitHub will also comment each finding on the PR, next to lurie-guard's comment ([ADR 0011](docs/adr/0011-sarif-upload-opt-in.md)).
 - **A job summary** with every finding, every suppression and its reason.
 - **Report-only by default.** Every finding is reported and the check passes. When you trust the findings, add `fail_on: error` to `.lurie-guard.yml` and errors block the merge; the file is read from the base branch so a PR cannot turn its own checks off ([ADR 0007](docs/adr/0007-report-only-default.md)).
 
@@ -54,7 +54,7 @@ jobs:
 | Frameworks | Transaction wrapper per framework (table below), Flyway `.conf`, Liquibase `runInTransaction`, Rails `disable_ddl_transaction!`, Django `atomic = False`, Alembic `autocommit_block()`, dbmate `transaction:false` |
 | Host languages | Raw SQL from Rails `execute`, Django `RunSQL`, Alembic `op.execute`; the Rails helpers `add_index`, `add_column`, `add_foreign_key`, `change_column_null`, `change_column` (plus `create_table`, `drop_table`, `remove_column`, `rename_column`, `rename_table`) mapped to SQL; anything else listed as "not analyzed" |
 | Config | `.lurie-guard.yml` read from the base branch; unknown keys, rule ids or severities fail the run naming the key |
-| Outputs | One review per run with suggested changes and idempotent fingerprints; SARIF 2.1.0 validated against the schema, with `partialFingerprints` and in-source suppressions, uploaded by the action; job summary; annotations; outputs and exit code |
+| Outputs | One review per run with suggested changes and idempotent fingerprints; SARIF 2.1.0 validated against the schema, with `partialFingerprints` and in-source suppressions, uploaded by the action when opted in (ADR 0011); job summary; annotations; outputs and exit code |
 | Fork PRs | Summary, annotations and exit code; comments and upload skipped (the token is read-only) |
 | Explainer | Optional, with your key, the rule's skill text as cached context, cost shown in the summary. Implemented and unit-tested with a fake client; not yet exercised against the live API |
 | CLI | `node dist/cli.js` (soon `npx lurie-guard`): the same engine on a folder or a list of files, for history scans |

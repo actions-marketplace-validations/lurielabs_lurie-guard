@@ -119,7 +119,7 @@ rules:
 
 outputs:
   review_comments: true
-  sarif: true
+  sarif: false                # opt in to the code scanning upload; GitHub then also comments each finding on the PR (ADR 0011)
   summary: true
   max_comments: 25            # further findings go to the summary only; the first comment says so
 
@@ -164,6 +164,8 @@ One SARIF 2.1.0 file ("Code scanning only supports SARIF version 2.1.0", [SARIF 
 - One `results[]` entry per finding with `ruleId`, `level`, `message.text`, one `locations[]` entry with the file and the statement's line range, and `partialFingerprints.primaryLocationLineHash` computed as GitHub documents so a finding that moves lines stays one alert.
 - Suppressed findings are included with `suppressions[]` (`kind: inSource`, `justification` = the reason), so code scanning shows them as dismissed, not missing.
 - Limits respected: at most 25,000 results per run and 10 MB compressed; the action truncates with a notice long before that.
+
+**The upload is opt-in** ([ADR 0011](adr/0011-sarif-upload-opt-in.md)): `outputs: {sarif: true}` in the base-branch config or the action input `upload_sarif: true`. The file is written on every run regardless (output `sarif_file`). The reason is documented GitHub behaviour: for a SARIF uploaded for a pull request ref, "code scanning posts a pull request review that shows each alert as an annotation on the lines of code" ([triaging code scanning alerts in pull requests](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/triaging-code-scanning-alerts-in-pull-requests)), with no setting to keep the alerts and drop the review, so every finding would appear twice on the PR: in lurie-guard's review (with the suggested change, the evidence link and the explanation) and in GitHub's. Opting in buys the Security tab history, stable fingerprints and dismissals, at the price of that second review. A team that wants the history without the duplicate uploads only for the default branch (`ref: refs/heads/main`), from a job on `push` that runs the CLI and `github/codeql-action/upload-sarif`.
 
 `category` is `lurie-guard/pg` so other SARIF uploads in the same workflow are not overwritten. On private repositories, code scanning needs a GitHub Code Security license; when the upload is refused the action prints the reason once and continues.
 
@@ -215,13 +217,13 @@ Each item is a test or a CI check.
 5. For PG004, a fixture with `SET lock_timeout` before the DDL and one with `lock_timeout_set_by_runner: true` in the config produce zero findings.
 6. For PG007, the PG 15 path (validated `CHECK` first) and the PG 18 path (`NOT NULL ... NOT VALID` then `VALIDATE`, with `postgres_version: 18`) produce zero findings; the bare `SET NOT NULL` produces one.
 7. A suppression with a reason removes the finding and appears in the summary; without a reason it produces `PGS01` and the finding stays; an unused suppression produces `PGS02`.
-8. The SARIF file validates against the SARIF 2.1.0 schema and uploads to a test repository's code scanning without error; a finding that moves by three lines between two commits is one alert.
+8. The SARIF file validates against the SARIF 2.1.0 schema and, when the upload is opted in (`outputs.sarif: true` or `upload_sarif: true`, [ADR 0011](adr/0011-sarif-upload-opt-in.md)), uploads to a test repository's code scanning without error; a finding that moves by three lines between two commits is one alert. Verified live on `lurielabs/lurie-guard` pull request #1 (five findings, five alerts).
 9. The config is read from the base branch: a PR that sets `rules: {PG001: off}` still gets PG001 findings and a notice.
 10. An unknown config key, an unknown rule id or an invalid severity fails the run with the key named in the message.
 11. A file that does not parse produces one `info` finding naming the position and does not affect the exit code.
 12. On a PR from a fork, the action completes with exit code reflecting the findings, writes the summary, and logs that comments and SARIF were skipped because the token is read-only.
 13. The performance budget holds on the 200-file corpus.
-14. The action runs with `permissions: {contents: read, pull-requests: write, security-events: write}` and nothing else; a workflow with `permissions: contents: read` alone still completes (summary and annotations only).
+14. The action runs with `permissions: {contents: read, pull-requests: write, security-events: write}` and nothing else (`security-events: write` only matters with the upload opted in); a workflow with `permissions: contents: read` alone still completes (summary and annotations only). The three-permission run was verified live on `lurielabs/lurie-guard` pull request #1 (review posted, SARIF accepted, check green).
 15. Without `anthropic_api_key`, no network call leaves the runner except to `api.github.com`; the test runs the action under a deny-all egress proxy with an allowlist of that host.
 16. With `anthropic_api_key`, the only additional host contacted is `api.anthropic.com`, the request carries the skills context with `cache_control`, and `usage.cache_read_input_tokens` is non-zero from the second finding onward in the same run.
 17. `README.md` and `README.pt-BR.md` list all 21 rules with the same ids and severities as `rules/`.

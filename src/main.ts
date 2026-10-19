@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const anthropicKey = core.getInput('anthropic_api_key');
   const configPath = core.getInput('config_path') || '.lurie-guard.yml';
   const sarifFile = core.getInput('sarif_file') || 'lurie-guard.sarif';
-  const uploadSarif = (core.getInput('upload_sarif') || 'true') !== 'false';
+  const uploadSarifInput = core.getInput('upload_sarif') === 'true';
   const strict = core.getInput('strict') === 'true';
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
   const apiFailures: string[] = [];
@@ -164,7 +164,12 @@ async function main(): Promise<void> {
   const sarifPath = resolve(workspace, sarifFile);
   writeFileSync(sarifPath, sarifJson);
   core.setOutput('sarif_file', sarifPath);
-  if (!fork && uploadSarif && out.config.outputs.sarif) {
+  // The upload is opt-in (ADR 0011): code scanning posts its own review on every finding of a PR.
+  const uploadSarif = uploadSarifInput || out.config.outputs.sarif;
+  if (!fork && !uploadSarif) {
+    core.info(`SARIF written to ${sarifPath}; not uploaded to code scanning. Opt in with outputs.sarif: true in .lurie-guard.yml or upload_sarif: true (GitHub then also comments each finding on the PR).`);
+  }
+  if (!fork && uploadSarif) {
     try {
       const id = await client.uploadSarif(owner, repo, pr.head.sha, `refs/pull/${pr.number}/head`, sarifJson);
       core.info(`SARIF uploaded to code scanning${id ? ` (${id})` : ''}.`);
