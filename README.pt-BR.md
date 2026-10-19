@@ -104,7 +104,7 @@ Toda regra corresponde a uma skill testada do db-skills. `error` significa que u
 | PG008 | `ADD FOREIGN KEY` sem `NOT VALID` | error | pg-online-migrations |
 | PG009 | `ADD CHECK` sem `NOT VALID` | error | pg-online-migrations |
 | PG010 | `VALIDATE CONSTRAINT` na mesma transação do `ADD ... NOT VALID` | error | pg-online-migrations |
-| PG011 | `ALTER COLUMN ... TYPE` que reescreve a tabela | error | pg-online-migrations |
+| PG011 | `ALTER COLUMN ... TYPE` que reescreve a tabela | warning | pg-online-migrations |
 | PG012 | `ADD UNIQUE` / `ADD PRIMARY KEY` sem `USING INDEX` | error | pg-online-migrations |
 | PG013 | `RENAME COLUMN` / `RENAME TABLE` em um passo só | warning | pg-online-migrations |
 | PG014 | `DROP COLUMN` / `DROP TABLE` | warning | pg-online-migrations |

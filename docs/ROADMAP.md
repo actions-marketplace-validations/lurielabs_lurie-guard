@@ -47,7 +47,9 @@ Testimonial template, filled with the pilot's own numbers:
 
 > In N weeks lurie-guard reviewed M migration files in our repositories and flagged K statements. J of them would have locked a production table; the one on `<table>` would have blocked writes for the whole index build. Zero false positives on blocking rules. Our developers fixed findings from the comment without asking. — Name, role, company
 
-Two scope items wait for the pilots by decision, not by accident:
+Three scope items wait by decision, not by accident:
+
+- **PG011 severity.** `alter-column-type-rewrites` ships as `warning`: its cost is measured, but the detector sees only the new type, and a binary-coercible retype (`varchar(50)` to `text`) is safe and indistinguishable from a rewrite without the current schema. It goes back to `error` once a schema snapshot input exists (a read-only export the action reads from the repository, planned with the schema-aware rules).
 
 - **`fail_on` default.** Pilots run report-only (`fail_on: none`, [ADR 0007](adr/0007-report-only-default.md)) and are asked to turn on `fail_on: error` in week three if the first two weeks produced no false positive. Whether `v1.0.0` ships with `error` as the default is decided from the measured false-positive and suppression rates, in its own ADR.
 - **Django and Alembic DSL extraction** (`AddField`, `AddIndex`, `op.add_column`, `op.create_index`, ...) starts after the first pilot that asks for it ([ADR 0008](adr/0008-host-language-migrations-mvp-scope.md)); the ask says which call shapes come first. Until then those frameworks are reviewed for their raw SQL and their transaction opt-out.

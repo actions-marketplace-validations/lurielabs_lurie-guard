@@ -5,7 +5,7 @@ import type { Rule, RuleResult } from '../../../src/types.js';
 export const rule: Rule = {
   id: 'PG011',
   name: 'alter-column-type-rewrites',
-  severity: 'error',
+  severity: 'warning',
   defaultOn: true,
   check(stmt, ctx) {
     if (stmt.kind !== 'AlterTableStmt') return;

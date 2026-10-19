@@ -104,7 +104,7 @@ Every rule maps to a tested db-skills skill. `error` means a measured fixture sh
 | PG008 | `ADD FOREIGN KEY` without `NOT VALID` | error | pg-online-migrations |
 | PG009 | `ADD CHECK` without `NOT VALID` | error | pg-online-migrations |
 | PG010 | `VALIDATE CONSTRAINT` in the same transaction as the `NOT VALID` add | error | pg-online-migrations |
-| PG011 | `ALTER COLUMN ... TYPE` that rewrites the table | error | pg-online-migrations |
+| PG011 | `ALTER COLUMN ... TYPE` that rewrites the table | warning | pg-online-migrations |
 | PG012 | `ADD UNIQUE` / `ADD PRIMARY KEY` without `USING INDEX` | error | pg-online-migrations |
 | PG013 | `RENAME COLUMN` / `RENAME TABLE` in one step | warning | pg-online-migrations |
 | PG014 | `DROP COLUMN` / `DROP TABLE` | warning | pg-online-migrations |

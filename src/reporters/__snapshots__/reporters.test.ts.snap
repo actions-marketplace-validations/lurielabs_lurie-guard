@@ -1100,7 +1100,7 @@ Where the framework wraps each file in a transaction, put the VALIDATE in the ne
             },
             {
               "defaultConfiguration": {
-                "level": "error",
+                "level": "warning",
               },
               "fullDescription": {
                 "text": "\`ALTER TABLE ... ALTER COLUMN ... TYPE\` on a table that is not created in the same migration set. The detector sees only the new type, not the column's current type, so it reports every retype of an existing table and names the binary-coercible cases in the message.",
@@ -1113,6 +1113,8 @@ Where the framework wraps each file in a transaction, put the VALIDATE in the ne
 ## Why it matters
 
 A type change "will normally cause the entire table and its indexes to be rewritten", unless the old type is binary coercible to the new one and there is no \`USING\` clause ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); rebuilds "temporarily require as much as double the disk space". The db-skills bad examples assert it twice with \`pg_relation_filenode\`: \`int\` to \`bigint\` on the 100,000-row \`orders\`, and \`varchar(20)\` to \`varchar(10)\` on \`customers\`, both write a new copy of the table under \`ACCESS EXCLUSIVE\`, which blocks reads and writes for the whole copy.
+
+The severity is \`warning\` in the MVP, not \`error\`, although the cost is measured: the detector sees only the new type, and a binary-coercible retype (\`varchar(50)\` to \`text\`) is a safe change that the rule cannot tell apart from a rewrite without a schema snapshot. An \`error\` must never fire on a safe change ([RULES.md](../../../docs/RULES.md), "False positives"). The rule goes back to \`error\` once a schema snapshot input exists ([ROADMAP.md](../../../docs/ROADMAP.md)). The cost fixture (\`fixtures/cost/test.sql\`) stays and keeps running.
 
 ## The fix
 
@@ -1138,6 +1140,8 @@ ALTER TABLE ... ALTER COLUMN ... TYPE on a table that is not created in the same
  Why it matters
 
 A type change "will normally cause the entire table and its indexes to be rewritten", unless the old type is binary coercible to the new one and there is no USING clause ([ALTER TABLE](https://www.postgresql.org/docs/18/sql-altertable.html)); rebuilds "temporarily require as much as double the disk space". The db-skills bad examples assert it twice with pg_relation_filenode: int to bigint on the 100,000-row orders, and varchar(20) to varchar(10) on customers, both write a new copy of the table under ACCESS EXCLUSIVE, which blocks reads and writes for the whole copy.
+
+The severity is warning in the MVP, not error, although the cost is measured: the detector sees only the new type, and a binary-coercible retype (varchar(50) to text) is a safe change that the rule cannot tell apart from a rewrite without a schema snapshot. An error must never fire on a safe change ([RULES.md](../../../docs/RULES.md), "False positives"). The rule goes back to error once a schema snapshot input exists ([ROADMAP.md](../../../docs/ROADMAP.md)). The cost fixture (fixtures/cost/test.sql) stays and keeps running.
 
  The fix
 
