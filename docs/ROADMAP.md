@@ -11,12 +11,12 @@ Order of work:
 1. Engine skeleton: diff reader, migration detector, WASM parser, rule interface, fixture harness, determinism diff. The first rule (PG001) end to end, including the review comment, SARIF and summary.
 2. Rules PG002 to PG012 (the lock and rewrite rules), fixtures copied from `pg-online-migrations`.
 3. Rules PG013 to PG021 (the release and type rules), fixtures from `pg-keys-and-types` and `pg-vacuum-and-bloat`.
-4. Framework wrappers for PG003 (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, golang-migrate).
-5. Config, suppression, base-branch config reading, fork handling.
+4. Framework wrappers for PG003 (Flyway, Liquibase, Rails, Django, Alembic, Prisma, dbmate, golang-migrate); raw SQL extraction in Rails, Django and Alembic; the Rails DSL helpers ([ADR 0008](adr/0008-host-language-migrations-mvp-scope.md)).
+5. Config, suppression, base-branch config reading, fork handling. `fail_on` defaults to `none` ([ADR 0007](adr/0007-report-only-default.md)).
 6. `scripts/test-fixtures.sh` against PostgreSQL 15 and 18 in Docker.
 7. The action on itself and on db-skills' fixtures in CI. Release `v0.1.0`.
 
-Exit criteria: all 17 acceptance criteria in SPEC-MVP.md pass in CI; the action is tagged `v0.1.0`; the performance budget holds; the README lists the 21 rules in both languages.
+Exit criteria: all 18 acceptance criteria in SPEC-MVP.md pass in CI; the action is tagged `v0.1.0`; the performance budget holds; the README lists the 21 rules in both languages.
 
 ## Phase 1: pilots (week 3 to week 10)
 
@@ -47,7 +47,12 @@ Testimonial template, filled with the pilot's own numbers:
 
 > In N weeks lurie-guard reviewed M migration files in our repositories and flagged K statements. J of them would have locked a production table; the one on `<table>` would have blocked writes for the whole index build. Zero false positives on blocking rules. Our developers fixed findings from the comment without asking. — Name, role, company
 
-Exit criteria: three pilots completed four weeks; the measures above met; at least three written testimonials; the false-positive procedure in [RULES.md](RULES.md) exercised at least once end to end; every rule's "When it does not apply" updated with what the pilots taught. Release `v1.0.0` and the `v1` tag.
+Two scope items wait for the pilots by decision, not by accident:
+
+- **`fail_on` default.** Pilots run report-only (`fail_on: none`, [ADR 0007](adr/0007-report-only-default.md)) and are asked to turn on `fail_on: error` in week three if the first two weeks produced no false positive. Whether `v1.0.0` ships with `error` as the default is decided from the measured false-positive and suppression rates, in its own ADR.
+- **Django and Alembic DSL extraction** (`AddField`, `AddIndex`, `op.add_column`, `op.create_index`, ...) starts after the first pilot that asks for it ([ADR 0008](adr/0008-host-language-migrations-mvp-scope.md)); the ask says which call shapes come first. Until then those frameworks are reviewed for their raw SQL and their transaction opt-out.
+
+Exit criteria: three pilots completed four weeks; the measures above met; at least three written testimonials; the false-positive procedure in [RULES.md](RULES.md) exercised at least once end to end; every rule's "When it does not apply" updated with what the pilots taught; the `fail_on` default decided with the numbers. Release `v1.0.0` and the `v1` tag.
 
 ## Phase 2: paid plan and LLM layer (month 3 to month 5)
 

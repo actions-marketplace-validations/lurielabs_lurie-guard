@@ -34,7 +34,13 @@ jobs:
 - **Review comments** on the exact line, with a suggested change when the fix is one statement.
 - **SARIF** uploaded to GitHub code scanning, with stable fingerprints and the rule's documentation.
 - **A job summary** with every finding, every suppression and its reason.
-- **Block merge** on errors (`fail_on: error`), configurable per rule in `.lurie-guard.yml`, read from the base branch so a PR cannot turn its own checks off.
+- **Report-only by default.** Every finding is reported and the check passes. When you trust the findings, add `fail_on: error` to `.lurie-guard.yml` and errors block the merge; the file is read from the base branch so a PR cannot turn its own checks off ([ADR 0007](docs/adr/0007-report-only-default.md)).
+
+  ```yaml
+  # .lurie-guard.yml (optional)
+  version: 1
+  fail_on: error     # block merges on error findings; default is none (report-only)
+  ```
 - **Inline suppression with a reason**: `-- lurie-guard: ignore PG001 reason="orders is new in this release"`.
 - **No server, no telemetry.** Code never leaves the runner. With your own Anthropic key, the optional explanation runs inside your runner under your API terms.
 

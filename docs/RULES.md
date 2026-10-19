@@ -81,7 +81,7 @@ The message ends with the rule id and the evidence link: `(PG001, evidence)`. Va
 
 | Severity | Meaning | Required evidence | Default effect |
 |---|---|---|---|
-| `error` | The statement will take an outage-class lock, rewrite or scan the table, or fail outright on a non-empty table | A measured assertion (lock mode, filenode change, scan count, SQLSTATE) in a sister-repository test, or in this repository's `scripts/test-fixtures.sh` run against PostgreSQL 15 and 18 when the sister repository has no example for the statement; in that case the issue to add the example upstream is linked in the frontmatter | Fails the check when `fail_on: error` (the default) |
+| `error` | The statement will take an outage-class lock, rewrite or scan the table, or fail outright on a non-empty table | A measured assertion (lock mode, filenode change, scan count, SQLSTATE) in a sister-repository test, or in this repository's `scripts/test-fixtures.sh` run against PostgreSQL 15 and 18 when the sister repository has no example for the statement; in that case the issue to add the example upstream is linked in the frontmatter | Fails the check when the config sets `fail_on: error`; the default is `none` (report-only) through v0.x ([ADR 0007](adr/0007-report-only-default.md)) |
 | `warning` | The statement has a documented cost or breaks the running release, but legitimate exceptions are common or the cost is not measured in a fixture | A primary-source citation; a measured fixture when one exists | Reported, never fails the check by default |
 | `info` | An opinion the skills hold that teams may reasonably reject | A primary-source citation | Off by default; enabled per rule in `.lurie-guard.yml` |
 

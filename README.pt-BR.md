@@ -34,7 +34,13 @@ jobs:
 - **Comentários de revisão** na linha exata, com uma sugestão de alteração quando a correção é uma única instrução.
 - **SARIF** enviado ao code scanning do GitHub, com fingerprints estáveis e a documentação da regra.
 - **Um resumo do job** com todos os achados, todas as supressões e seus motivos.
-- **Bloqueio do merge** em erros (`fail_on: error`), configurável por regra em `.lurie-guard.yml`, lido do branch base para que um PR não consiga desligar as próprias verificações.
+- **Só relata, por padrão.** Todo achado é relatado e o check passa. Quando você confiar nos achados, adicione `fail_on: error` ao `.lurie-guard.yml` e os erros bloqueiam o merge; o arquivo é lido do branch base para que um PR não consiga desligar as próprias verificações ([ADR 0007](docs/adr/0007-report-only-default.md)).
+
+  ```yaml
+  # .lurie-guard.yml (opcional)
+  version: 1
+  fail_on: error     # bloqueia o merge em achados error; o padrão é none (só relata)
+  ```
 - **Supressão inline com motivo**: `-- lurie-guard: ignore PG001 reason="orders é nova nesta release"`.
 - **Sem servidor, sem telemetria.** O código nunca sai do runner. Com a sua própria chave da Anthropic, a explicação opcional roda dentro do seu runner, sob os termos da sua API.
 
