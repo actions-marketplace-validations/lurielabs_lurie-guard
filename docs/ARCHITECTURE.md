@@ -46,7 +46,7 @@ Lists the PR's files through the REST API (paginated, 100 per page) and reads th
 
 ### Migration detector
 
-Classifies each file by path glob and framework, decides whether the framework wraps the file in a transaction and whether the file opts out, and extracts SQL from host-language migrations (Rails `execute`, Django `RunSQL`, Alembic `op.execute`). For Rails it also maps the common DSL calls to their SQL (`add_index` to `CREATE INDEX`, with `algorithm: :concurrently` to `CONCURRENTLY`). The host-language extraction is deliberately narrow: string literals and a fixed list of DSL calls, located with a tree-sitter grammar for Ruby and Python compiled to WebAssembly; anything dynamic is skipped and listed in the summary as "not analyzed", never guessed. The table of frameworks is in [SPEC-MVP.md](SPEC-MVP.md).
+Classifies each file by path glob and framework, decides whether the framework wraps the file in a transaction and whether the file opts out, and extracts SQL from host-language migrations (Rails `execute`, Django `RunSQL`, Alembic `op.execute`). For Rails it also maps the common DSL calls to their SQL (`add_index` to `CREATE INDEX`, with `algorithm: :concurrently` to `CONCURRENTLY`). The host-language extraction is deliberately narrow: string literals and a fixed list of DSL calls, located with a tree-sitter grammar for Ruby and Python compiled to WebAssembly; anything dynamic is skipped and listed in the summary as "not analyzed", never guessed. In the MVP the DSL list is the Rails helpers only; Django and Alembic are raw SQL until a pilot asks ([ADR 0008](adr/0008-host-language-migrations-mvp-scope.md)). The table of frameworks is in [SPEC-MVP.md](SPEC-MVP.md).
 
 ### SQL parser
 
@@ -161,3 +161,6 @@ A GitHub App gives: installation on an organization without a workflow file, com
 | [0004](adr/0004-outputs-review-comments-sarif-summary.md) | Review comments, SARIF and job summary as the outputs |
 | [0005](adr/0005-name.md) | The name |
 | [0006](adr/0006-license.md) | Apache-2.0 |
+| [0007](adr/0007-report-only-default.md) | Report-only by default through v0.x; `fail_on: error` is opt-in |
+| [0008](adr/0008-host-language-migrations-mvp-scope.md) | Host-language migrations: raw SQL everywhere, Rails DSL helpers; Django and Alembic DSL later |
+| [0009](adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |

@@ -156,6 +156,9 @@ Decisions that shape the product are recorded as ADRs in `docs/adr/`, one file p
 | [0004](docs/adr/0004-outputs-review-comments-sarif-summary.md) | Review comments plus SARIF plus job summary |
 | [0005](docs/adr/0005-name.md) | The name |
 | [0006](docs/adr/0006-license.md) | Apache-2.0 for the action and the rules |
+| [0007](docs/adr/0007-report-only-default.md) | Report-only by default through v0.x; `fail_on: error` is opt-in |
+| [0008](docs/adr/0008-host-language-migrations-mvp-scope.md) | Host-language migrations: raw SQL everywhere, Rails DSL helpers; Django and Alembic DSL after the first pilot that asks |
+| [0009](docs/adr/0009-build-toolchain.md) | esbuild bundle, vitest, ESLint, `dist/` committed |
 
 ## Language and tone
 
