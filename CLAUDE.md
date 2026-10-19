@@ -7,7 +7,7 @@ This file guides Claude Code (and any other coding agent) when working inside th
 `lurie-guard` is a GitHub Action (later also a GitHub App) that reviews pull requests for the mistakes that cause production incidents and cloud cost, and backs every finding with measured evidence. It installs in two minutes:
 
 ```yaml
-- uses: lurielabs/lurie-guard@v1
+- uses: lurielabs/lurie-guard@v0
   with:
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # optional, bring your own key
 ```

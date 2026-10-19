@@ -2,9 +2,11 @@
 
 [English](README.md) | **Português**
 
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-lurie--guard-blue?logo=github)](https://github.com/marketplace/actions/lurie-guard) [![Release](https://img.shields.io/github/v/release/lurielabs/lurie-guard)](https://github.com/lurielabs/lurie-guard/releases)
+
 **Uma GitHub Action que revisa pull requests em busca dos erros que causam incidentes em produção e custo de nuvem, com evidência medida por trás de cada regra.**
 
-> Status: **MVP em desenvolvimento, pré-release** (`0.1.0`, ainda sem tag nem publicação). O pacote PostgreSQL está construído e testado: 21 regras, o engine, as quatro saídas, a CLI. Ainda não rodou em um repositório real; os pilotos vêm a seguir ([docs/ROADMAP.md](docs/ROADMAP.md)). Os documentos em [`docs/`](docs/) são a especificação que o código segue.
+> Status: **v0, no [GitHub Marketplace](https://github.com/marketplace/actions/lurie-guard)**. O pacote PostgreSQL está publicado: 21 regras, o engine, a revisão, o SARIF, o resumo e as anotações, a CLI. Ele roda nos pull requests deste repositório e no [go-skills](https://github.com/rafapeixer/go-skills) e no [java-skills](https://github.com/rafapeixer/java-skills); os pilotos com times de fora vêm a seguir ([docs/ROADMAP.md](docs/ROADMAP.md)). Use `@v0` para receber todas as correções da série 0.x. Os documentos em [`docs/`](docs/) são a especificação que o código segue.
 
 A maioria dos incidentes de banco começa com uma migration que parecia boa na revisão: um `CREATE INDEX` que segura um lock `SHARE` na tabela de pedidos durante toda a construção, um `ALTER TABLE` enfileirado atrás de um relatório longo enquanto toda consulta nova enfileira atrás dele, um `SET NOT NULL` que varre cem milhões de linhas sob `ACCESS EXCLUSIVE`. O manual do PostgreSQL documenta cada um deles. O PR é aprovado mesmo assim.
 
@@ -26,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7          # fixe em um SHA de commit no seu repositório
-      - uses: lurielabs/lurie-guard@v1       # fixe em um SHA de commit no seu repositório
+      - uses: lurielabs/lurie-guard@v0       # fixe em um SHA de commit no seu repositório
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # opcional: explicações em linguagem simples com a sua própria chave
 ```

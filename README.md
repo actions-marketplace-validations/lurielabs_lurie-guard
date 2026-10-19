@@ -2,9 +2,11 @@
 
 **English** | [Português](README.pt-BR.md)
 
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-lurie--guard-blue?logo=github)](https://github.com/marketplace/actions/lurie-guard) [![Release](https://img.shields.io/github/v/release/lurielabs/lurie-guard)](https://github.com/lurielabs/lurie-guard/releases)
+
 **A GitHub Action that reviews pull requests for the mistakes that cause production incidents and cloud cost, with measured evidence behind every rule.**
 
-> Status: **MVP in development, pre-release** (`0.1.0`, not yet tagged or published). The PostgreSQL pack is built and tested: 21 rules, the engine, the four outputs, the CLI. It has not run on a real repository yet; the pilots come next ([docs/ROADMAP.md](docs/ROADMAP.md)). The documents in [`docs/`](docs/) are the specification the code follows.
+> Status: **v0, on [GitHub Marketplace](https://github.com/marketplace/actions/lurie-guard)**. The PostgreSQL pack ships: 21 rules, the engine, the review, SARIF, summary and annotations, the CLI. It runs on this repository's own pull requests and on [go-skills](https://github.com/rafapeixer/go-skills) and [java-skills](https://github.com/rafapeixer/java-skills); pilots with outside teams come next ([docs/ROADMAP.md](docs/ROADMAP.md)). Use `@v0` to get every 0.x fix. The documents in [`docs/`](docs/) are the specification the code follows.
 
 Most database incidents start with a migration that looked fine in review: a `CREATE INDEX` that holds a `SHARE` lock on the orders table for the whole build, an `ALTER TABLE` queued behind a long report while every new query queues behind it, a `SET NOT NULL` that scans a hundred million rows under `ACCESS EXCLUSIVE`. The PostgreSQL manual documents every one of them. The PR gets approved anyway.
 
@@ -26,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7          # pin to a commit SHA in your repository
-      - uses: lurielabs/lurie-guard@v1       # pin to a commit SHA in your repository
+      - uses: lurielabs/lurie-guard@v0       # pin to a commit SHA in your repository
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: plain-words explanations with your own key
 ```
