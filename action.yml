@@ -1,5 +1,5 @@
 name: 'lurie-guard'
-description: 'Reviews the migrations in a pull request for the mistakes that cause production incidents, with measured evidence behind every rule.'
+description: 'Catches PostgreSQL migrations that lock production tables or fail on deploy, with measured evidence for every rule.'
 author: 'Lurie Labs'
 branding:
   icon: 'shield'

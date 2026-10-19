@@ -19695,7 +19695,7 @@ function buildSummary(result, opts) {
 }
 
 // src/run.ts
-var VERSION = "0.1.0";
+var VERSION = "0.1.1";
 function fullCatalog() {
   return [...catalog, ...builtinCatalog()];
 }

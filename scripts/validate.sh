@@ -145,6 +145,12 @@ for skill_dir in vendor/db-skills/skills/*/; do
   fi
 done
 
+# GitHub Marketplace rejects an action whose description is 125 characters or longer.
+action_desc=$(sed -n "s/^description: '\(.*\)'$/\1/p" action.yml)
+if [ -z "$action_desc" ] || [ ${#action_desc} -ge 125 ]; then
+  fail "action.yml" "description must be set and shorter than 125 characters (has ${#action_desc})"
+fi
+
 # The generated rules index is current.
 node scripts/gen-rules-index.mjs --check >/dev/null || fail "rules index" "src/generated is stale; run npm run gen:rules"
 

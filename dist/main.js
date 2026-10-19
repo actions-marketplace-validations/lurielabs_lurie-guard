@@ -57635,7 +57635,7 @@ var GitHubApiError = class extends Error {
 };
 var API_VERSION = "2022-11-28";
 var GitHubClient = class {
-  constructor(token, baseUrl, version = "0.1.0", fetchImpl = globalThis.fetch) {
+  constructor(token, baseUrl, version = "0.1.1", fetchImpl = globalThis.fetch) {
     this.token = token;
     this.version = version;
     this.fetchImpl = fetchImpl;
@@ -65303,7 +65303,7 @@ function toResult(f, ruleIndex, contents) {
 }
 
 // src/run.ts
-var VERSION3 = "0.1.0";
+var VERSION3 = "0.1.1";
 function fullCatalog() {
   return [...catalog, ...builtinCatalog()];
 }
